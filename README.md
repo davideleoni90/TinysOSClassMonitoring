@@ -1,5 +1,4 @@
 # TinysOsAccelerometer
-# TinyOS-based data collection
  <p>
  This application is the result of a didactic project for the 
  <a href="http://ru1.cti.gr/~ichatz/index.php/Site/PervasiveSystems">
