@@ -30,7 +30,6 @@ implementation {
 	App.RootControl->Collector;
 	App.CollectionPacket->Collector;
 	App.RadioControl->ActiveMessageC;
-	App.SerialControl->SerialActiveMessageC;
 	App.StdControl->Collector;
 	App.CtpInfo->Collector;
 	App.Send->Sender;

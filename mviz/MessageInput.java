@@ -216,37 +216,7 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	if(origine.intValue()==1){
 	t.start();
 	}
-	/*my edit 5/9/2015:include RESTClient
-	try{
-		CloseableHttpClient httpclient = HttpClients.createDefault();
-		HttpPost httpPost = new HttpPost("https://api.parse.com/1/classes/Acceleration");
-		httpPost.addHeader("X-Parse-Application-Id","5n2Djg2xAkoeFWmOsfUbvFVBo93Q7Auy7b3T3qd3");
-		httpPost.addHeader("X-Parse-REST-API-Key","YAyYipCKIC5yJHRRrWm74ObGX8ajUSFNR0Ab7Xgf");
-		String messageToSend="{";
-		for(int i=0;i<3;i++){
-			messageToSend+="\""+String.valueOf(parameters[i])+"\""+": "+Integer.toString(valuesToSend[i])+",";
-		}
-		messageToSend=messageToSend.substring(0,messageToSend.length()-1);
-		messageToSend+="}";
-		System.out.println(messageToSend);
-		StringEntity myEntity = new StringEntity(messageToSend,ContentType.create("application/json", "UTF-8"));
-		httpPost.setEntity(myEntity);
-		CloseableHttpResponse response = httpclient.execute(httpPost);
-		BufferedReader rd = new BufferedReader (new InputStreamReader(response.getEntity().getContent()));
-		String line = "";
-		while ((line = rd.readLine()) != null) {
-			System.out.println(line);
-		
-    		}
-    		if(3==4){
-    		throw new IOException();
-    		}
-    	}
-    	catch(IOException ex){
-    		System.out.println("Exception:"+ex.getMessage());
-    	}
-    	my edit 5/9/2015:include RESTClient*/
-    }
+	}
     
     void updateOnParse(){
     	char[] parameters={'X','Y','Z'};

@@ -6,7 +6,6 @@ module NodeC{
 	uses interface Boot;
 	uses interface StdControl;
 	uses interface SplitControl as RadioControl;
-	uses interface SplitControl as SerialControl;
 	uses interface Receive as RootReceive;
 	uses interface Receive as Snoop;
 	uses interface Send;
@@ -85,14 +84,6 @@ implementation{
 	
 	event void RadioControl.stopDone(error_t error){
 	
-	}
-	
-	event void SerialControl.startDone(error_t err){
-	
-	}
-	
-	event void SerialControl.stopDone(error_t err) {
-
 	}
 	
 	event void Timer.fired(){

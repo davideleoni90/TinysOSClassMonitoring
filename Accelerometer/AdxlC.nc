@@ -113,101 +113,7 @@ implementation {
 		call Leds.led1On();
 	}
 
-	/*event void Register.readDone(error_t result, uint8_t data) {
-		if(result==SUCCESS){
-		if(!fifo){
-		elapsed+=call TimerAccel.getdt();
-		printf("time: %li\n",elapsed); 
-		if(elapsed<=15000){
-			switch(registerToRead){
-				case ADXL345_ADDRESS:{
-					printf("Register %04x:%d\n",registerToRead,data);
-					printfflush();
-					registerToRead=ADXL345_DEVID;
-					break;
-				}
-				case ADXL345_DEVID:{
-					printf("Register %04x:%d\n",registerToRead,data);
-					printfflush();
-					registerToRead=ADXL345_THRESH_TAP;
-					break;
-				}
-				default:{
-					printf("Register %04x:%d\n",registerToRead,data);
-					printfflush();
-					if(elapsed!=15000){
-					registerToRead++;
-					}
-					break;
-				}
-			}
-			}
-			else{
-			printf("stop");
-			printfflush();
-			if(current==0){
-			call TimerAccel.stop();
-			call Xaxis.read();
-			}
-			}
-		}
-		else{
-		printf("FIFO:%d",data);
-		}
-		}
-	}
 	
-	event void Register2.readDone(error_t result, uint8_t data) {
-		if(current!=0){
-		printf("Register2:%d\n",data);
-		}
-	}	
-
-	event void ADXL345Control.setRangeDone(error_t error) {
-	}
-
-	event void ADXL345Control.setInterruptsDone(error_t error) {
-	}
-
-	event void ADXL345Control.setIntMapDone(error_t error) {
-	}
-
-	event void ADXL345Control.setRegisterDone(error_t error) {
-		if(error == SUCCESS) {
-			printf("Register succesfully set");
-			fifo=TRUE;
-			call TimerAccel.startOneShot(30000);
-		}
-	}
-
-	event void ADXL345Control.setDurationDone(error_t error) {
-	}
-
-	event void ADXL345Control.setLatentDone(error_t error) {
-	}
-
-	event void ADXL345Control.setWindowDone(error_t error) {
-	}
-
-	event void ADXL345Control.setReadAddressDone(error_t error) {
-		if(error==SUCCESS){
-			if(current==0){
-			call Register.read();
-			}
-			else{
-			printf("corrente:%d\n",current);
-			printfflush();
-			call Register2.read();
-			}
-		}
-		else{
-			printf("stop");
-			printfflush();
-			call TimerAccel.stop();
-			call Xaxis.read();
-		}
-	}*/
-
 	event void Xaxis.readDone(error_t result, uint16_t data) {
 		printf("X (%d) ", data);
 		xAcceleration=data;
@@ -270,51 +176,7 @@ implementation {
 		printfflush();
 	}
 	
-	/*command error_t CollectionDebug.logEvent(uint8_t type){
-		printf("EVENT:%d\n",type);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventSimple(uint8_t type, uint16_t arg){
-		printf("SIMPLE EVENT:%u ARG:%u\n",type,arg);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventDbg(uint8_t type, uint16_t arg1, uint16_t arg2, uint16_t arg3){
-		printf("DBG EVENT:%u\n",type);
-		printf("ARG1:%u\n",arg1);
-		printf("ARG2:%u\n",arg2);
-		printf("ARG3:%u\n",arg3);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventMsg(uint8_t type, uint16_t msg, am_addr_t origin, am_addr_t node){
-		printf("LOG EVENT:%u\n",type);
-		printf("MSG:%u\n",msg);
-		printf("ORIGIN:%u\n",origin);
-		printf("NODE:%u\n",node);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric){
-		printf("LOG EVENT:%u\n",type);
-		printf("PARENT:%u\n",parent);
-		printf("HOP COUNT:%u\n",hopcount);
-		printf("METRIC:%u\n",metric);
-		printfflush();
-		return SUCCESS;
-	}*/
-	
-	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
-		acceleration_msg_t* res=(acceleration_msg_t*)(payload);
-		printf("X RESULT %d",res->x_acceleration);
-		printfflush();
-		return msg;
-	}
+		
 	
 	event message_t* Snoop.receive(message_t* msg, void* payload, uint8_t len){
 		printf("SNOOP\n");

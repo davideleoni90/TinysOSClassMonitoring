@@ -71,6 +71,7 @@
  <li>TinyOs applications for the motes, i.e. for the Magonode (Accelerometer) and for the TelosB (Node)</li>
  <li>Header file (Acceleration.h) including the fields of the packets to be visualized by the Java GUI application </li>
  <li>Extended version of Mviz</li>
+ <li>Make files to compile to magonode (avr folder and magonode.target); to be put in the make directory of the TinyOS installation</li>
  </ol>
  </p>
   
