@@ -33,7 +33,6 @@
  root node and the various messengers are represented by <a href="https://www.google.it/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCEQFjAAahUKEwjEtLLIz4vIAhVI_nIKHcQuBMI&url=http%3A%2F%2Fwww.willow.co.uk%2FTelosB_Datasheet.pdf&usg=AFQjCNEdsZ8RCsxFTT5e4otj-0cxDVyjfA&sig2=aCFXqqXgc4FxPS4z-ZtR3w">Crossbow TelosB</a>   
  </p>
  <h2>Software implementation</h2>
- <h1>TinyOS-based application</h1>
  <h3>TinyOS-based application</h3>
  <p>Since the hardware platform of the leaf node is different from the one of the messenger nodes and of the root node, the TinyOs-based application comes in two distinct flavours:
  <ol type="1">
@@ -43,7 +42,6 @@
  </ol>
  Anyway, since they have to communicate one another, all the nodes in the network make use of the same implementation of the CTP provided with the distro of TinyOS.
  </p>
- <h1>Java GUI application</h1>
  <h3>Java GUI application</h3>
  <p>
  TinyOS comes with a Java application named "mviz" which provides a graphical tool to show the links in a network made of nodes running the Collection Tree Protocol:
