@@ -16,8 +16,8 @@
  </p>
  <h2>Architecture</h2>
  <p> The network is based on the <i>Collection Tree Protocol (CTP)</i>:nodes organize themselves to form a <i>tree-shaped</i> network, where packets are transmitted from the leaf node to the root node. In particular, every node maintains its own routing table
- through which its capable of estimate the quality of the link with all its neighbors, so it's always capable of estimating the path which involves less hops before a packet is delivered to the root;
- periodically every node sends broadcast packets (beacons), waiting for the other nodes to acknowledge them in order to discover the quality of the link with them.
+ with an estimation of the quality of the link to all its neighbors, so it's always capable of determining the path which involves less hops before a packet is delivered to the root;
+ periodically every node sends broadcast packets (beacons), waiting for the other nodes to acknowledge them in order to discover the quality of the links.
  For this project the architecture of the network is as follows: 
  <ul>
  <li> <u>1 leaf node</u>: interacts with the accelerometer in order to sample data from it and then sends them towards the root of the network</li>
@@ -29,8 +29,7 @@
  <h2>Hardware implementation</h2>
  <p>
  The accelerometer used in this project is the <a href="http://www.analog.com/en/products/mems/mems-accelerometers/adxl345.html#product-overview">ADXL-345 by AnalogDevices</a>, a 3-axis accelerometer with 13-bit resolution, up to +/-16g peaks of acceleration. 
- The leaf node to which it's connected is a <a href="http://www.wsense.it/?p=158">MagoNode Platform</a>, while the
- root node and the various messengers are represented by <a href="https://www.google.it/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCEQFjAAahUKEwjEtLLIz4vIAhVI_nIKHcQuBMI&url=http%3A%2F%2Fwww.willow.co.uk%2FTelosB_Datasheet.pdf&usg=AFQjCNEdsZ8RCsxFTT5e4otj-0cxDVyjfA&sig2=aCFXqqXgc4FxPS4z-ZtR3w">Crossbow TelosB</a>   
+ The leaf node to which it's connected is a <a href="http://www.wsense.it/?p=158">MagoNode Platform</a>, while the root node and the various messengers are represented by <a href="https://www.google.it/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCEQFjAAahUKEwjEtLLIz4vIAhVI_nIKHcQuBMI&url=http%3A%2F%2Fwww.willow.co.uk%2FTelosB_Datasheet.pdf&usg=AFQjCNEdsZ8RCsxFTT5e4otj-0cxDVyjfA&sig2=aCFXqqXgc4FxPS4z-ZtR3w">Crossbow TelosB</a>   
  </p>
  <h2>Software implementation</h2>
  <h3>TinyOS-based application</h3>
@@ -45,7 +44,7 @@
  <h3>Java GUI application</h3>
  <p>
  TinyOS comes with a Java application named "mviz" which provides a graphical tool to show the links in a network made of nodes running the Collection Tree Protocol:
- the application interacts with the root node by mean of a serial port,so as messages are received the representation of the topology of the network gets updated.
+ the application communicates with the root node through a serial port,so when messages are received the representation of the topology of the network gets updated.
  <img src="https://github.com/kimi1490/TinysOsAccelerometer/blob/master/Images/graph.jpg" alt="graph">
  <br>
  Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
@@ -59,6 +58,9 @@
  <img src="https://github.com/kimi1490/TinysOsAccelerometer/blob/master/Images/download.jpg" alt="parse download">
  <br><br>
  </ol>
+ Both these features are implemented using the <a href="https://www.parse.com/docs/rest/guide">REST API</a> available at Parse.com. Since the request
+ and the response of this API contain a JSONObject, in order to run the "extended Mviz" it's necessary to import either this <a href="http://www.json.org/">JSON library</a>
+ and this <a href="http://hc.apache.org/httpclient-3.x/">HTTP Client</a>. 
  </p>
  <h2>Files Description</h2>
  <p>
@@ -66,7 +68,7 @@
  <ol>
  <li>TinyOs applications for the motes, i.e. for the Magonode (Accelerometer) and for the TelosB (Node)</li>
  <li>Header file (Acceleration.h) including the fields of the packets to be visualized by the Java GUI application </li>
- <li>Extension of Mviz</li>
+ <li>Extended version of Mviz</li>
  </ol>
  </p>
   
