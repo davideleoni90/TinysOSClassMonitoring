@@ -49,6 +49,7 @@
  TinyOS comes with a Java application named "mviz" which provides a graphical tool to show the links in a network made of nodes running the Collection Tree Protocol:
  the application interacts with the root node by mean of a serial port,so as messages are received the representation of the topology of the network gets updated.
  <img src="https://github.com/kimi1490/TinysOsAccelerometer/blob/master/Images/graph.jpg" alt="graph">
+ <br>
  Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
  <ol type="1">
  <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a></li>
