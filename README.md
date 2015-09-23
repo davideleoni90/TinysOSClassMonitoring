@@ -20,7 +20,7 @@
  periodically every node sends broadcast packets (beacons), waiting for the other nodes to acknowledge them in order to discover the quality of the links.
  For this project the architecture of the network is as follows: 
  <ul>
- <li> <u>1 leaf node</u>: interacts with the accelerometer in order to sample data from it and then sends them towards the root of the network</li>
+ <li> <u>1 leaf node</u>: interacts with the accelerometer in order to sample data from it and then sends them towards the root of the network. Its mote-id has to be set to "1" in order to correctly update data on Parse(see later)</li> 
  <li> <u>1 root node </u>: the recipient of the data sent by the leaf; it's connected to the serial port of a pc</li>
  <li> <u><i>n</i> intermediate nodes</u>: they are in charge of forwarding data received from one neighbor node to another neighbor node on the path to the root</li>
  </ul>
