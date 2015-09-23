@@ -60,6 +60,15 @@
  <br><br>
  </ol>
  </p>
+ <h2>Files Description</h2>
+ <p>
+ The most important files available from this project are:
+ <ol>
+ <li>TinyOs applications for the motes, i.e. for the Magonode (Accelerometer) and for the TelosB (Node)</li>
+ <li>Header file (Acceleration.h) including the fields of the packets to be visualized by the Java GUI application </li>
+ <li>Extension of Mviz</li>
+ </ol>
+ </p>
   
  
  
