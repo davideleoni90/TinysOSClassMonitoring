@@ -53,8 +53,13 @@
  Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
  <ol type="1">
  <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a></li>
+ <br><br>
  <img src="https://github.com/kimi1490/TinysOsAccelerometer/blob/master/Images/parse.jpg" alt="parse upload">
+ <br><br>
  <li>Data download of the last three uploaded value, from the database</li>
+ <br><br>
+ <img src="https://github.com/kimi1490/TinysOsAccelerometer/blob/master/Images/download.jpg" alt="parse download">
+ <br><br>
  </ol>
  </p>
   
