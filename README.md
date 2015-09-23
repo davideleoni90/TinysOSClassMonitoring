@@ -49,7 +49,9 @@
  <br>
  Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
  <ol type="1">
- <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a></li>
+ <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a>
+ Only data extracted from packets whose origin is set to "1" are uploaded (data from the accelerometer)
+ </li>
  <br><br>
  <img src="https://github.com/kimi1490/TinysOsAccelerometer/blob/master/Images/parse.jpg" alt="parse upload">
  <br><br>
