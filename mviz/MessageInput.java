@@ -208,9 +208,14 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 	else {
 	    System.err.println("Could not find origin field, discarding message.");
 	}
-	new Thread(){
-		public void run(){updateOnParse();
-	}.start();
+	Integer origine = (Integer)table.get("origin");
+	System.out.println("ORIGIN:"+origine);
+	Thread t=new Thread(new Runnable(){
+		public void run(){updateOnParse();}
+	});
+	if(origine.intValue()==1){
+	t.start();
+	}
 	/*my edit 5/9/2015:include RESTClient
 	try{
 		CloseableHttpClient httpclient = HttpClients.createDefault();
