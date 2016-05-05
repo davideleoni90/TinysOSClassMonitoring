@@ -87,7 +87,7 @@ implements Serializable {
 	int index = root.sensed_links.indexOf(name);
 	if (index < 0) return;
 	values[index] = value;
-	//System.out.println("Setting link value " + index + " to " + value);
+	System.out.println("Setting link value " + index + " to " + value);
     }
     private int getMiddle(int x1, int x2){
     	return (x1 + x2)/2;

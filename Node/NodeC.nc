@@ -7,86 +7,128 @@ module NodeC{
 	uses interface StdControl;
 	uses interface SplitControl as RadioControl;
 	uses interface Receive as RootReceive;
-	uses interface Receive as Snoop;
-	uses interface Send;
 	uses interface AMSend;
 	uses interface Packet;
 	uses interface RootControl;
-	uses interface CollectionPacket;
 	uses interface Leds;
-	uses interface Intercept;
-	provides interface CollectionDebug;
 	uses interface CtpInfo;
 	uses interface LinkEstimator;
-	uses interface Timer<TMilli>;
+	uses interface Intercept;
+	uses interface Queue<message_t*>;
+	/*REMOVE uses interface Timer<TMilli>;*/
 }
 implementation{
 	
-	bool busy=FALSE;
+	/*REMOVE Is the mote already sending a packet through its radio?
+	bool radioBusy=FALSE;*/
+	/*Is the mote already sending a packet through its serial port (UART)?*/
 	bool serialBusy=FALSE;
-	bool isRoot=FALSE;
-	message_t message;
+	/*These two memory location hold exactly one link-layer packet each, plus header and footer from upper layers and metadata; one is
+	used to hold packets sent and received through the radio, and the other one holds packets to send to the UART (see "TinyOS - TEP 111") */
+	/*REMOVEmessage_t message;*/
 	message_t serialMessage;
-	error_t ctpOn;
+	/*The pointer to first element of the queue containing the packets to send to uart*/
+	message_t* queueHead;
+	/*Is the sending queue full?*/
+	error_t queueFull=FAIL;
+	/*Was the mote successfully set as the root node?*/
+	error_t rootOn=FAIL;
+	/*Was the radio successfully turned on?*/
+	error_t radioOn=EOFF;
+	/*Was the Collection Tree infrastructure successfully started?*/
+	error_t ctpOn=FAIL;
+	/*This variable indicates whether the "send" request has been successfully accepted by the serial communication stack or not*/
 	error_t sendingToSerial;
-	error_t sendingToRadio;
-	acceleration_msg_t* measure;
-	am_addr_t src;
-	uint16_t quality;
-	am_addr_t parent;
-	uint16_t value;
+	/*REMOVE This variable indicates whether the "send" request has been successfully accepted by the serial communication stack or not
+	error_t sendingToRadio;*/
+	/*The pointers to "acceleration_msg_t" structures (see header "Acceleration.h"), representing the payload of message buffers,
+	respectively from the radio and from the serial port*/
+	/*REMOVE acceleration_msg_t* payloadRadio;*/
+	acceleration_msg_t* payloadSerial;
+	/*Pointers to the payload of received packets*/
+	acceleration_msg_t* dataReceived;
+	acceleration_msg_t* dataToSend;
+	/*REMOVE The ETX field of the payload of a packet
+	uint16_t quality;*/
+	/*REMOVE Another field in a packet, representing the ID of the parent of the mote within the collection tree
+	am_addr_t parent;*/
+	/*REMOVEAnother field in a packet, representing the bidirectional quality of the link with a neighbor of the mote within the collection
+	tree
+	uint16_t value;*/
 	
+	task void startRadio();
+	
+	task void sendSerialMessage();
+	
+	/*When this event is signaled, the mote is up and running, so we a task for turning on the radio transceiver*/
 	event void Boot.booted() {
-		if(call RadioControl.start()!=SUCCESS){
-			printf("Error while starting radio");
-			printfflush();
-		}
-		ctpOn=call StdControl.start();
-		if(ctpOn!=SUCCESS){
-			printf("Error while starting collection infrastructure");
-			printfflush();
-		}
+		post startRadio();
 	}
 	
-	event void RadioControl.startDone(error_t error){
-		if(error!=SUCCESS){
-			printf("Radio initialization failed");
-			printfflush();
-			return;
-		}
-		call Leds.led1On();
+	/*This task starts the radio subsystem through the HIL component ActiveMessageC; it also tries to start the CollectionTreeProtocol
+	subsystem through CollectionC (see "TinyOS - TEP 111") and it tries until it's successfull*/
+	task void startRadio() {
+		call RadioControl.start();
+		ctpOn=call StdControl.start();
 		while(ctpOn!=SUCCESS){
+			printf("Error while starting collection infrastructure\n");
+			printfflush();
 			call StdControl.start();
 		}
-		if(TOS_NODE_ID==ROOT_ID && !(call RootControl.isRoot())){
-			call Leds.led2On();
-			call Leds.led1Off();
-			call RootControl.setRoot();
-			printf("Is root?%d",call RootControl.isRoot());
-		}
-		else{
-			/*if(TOS_NODE_ID!=4){
-				acceleration_msg_t* payload=(acceleration_msg_t*)call Send.getPayload(&message,sizeof(acceleration_msg_t));
-				printf("Payload length:%d1n",call Send.maxPayloadLength());
-				printf("LENGTH:%d",call Packet.payloadLength(&message));
-				payload->x_acceleration=1;
-				payload->y_acceleration=2;
-				payload->z_acceleration=3;
-				call CtpInfo.getParent(&src);
-				call Send.send(&message, sizeof(acceleration_msg_t));
-				printf("PARENT:%d",src);
-				printfflush();
-			}*/
-		}
-		printfflush();
-		call Timer.startPeriodic(2000);
 	}
 	
+	/*If the radio has been successfully started, a confirmation message is printed and, in case the ID of the mote is the same
+	as the variable "ROOT_ID" (see header "Acceleration.h"), namely it is designed to be the root of the collection tree, the mote sets himself as
+	the root of the collection tree through the command "setRoot"; moreover the led0 is turned on to indicate that the radio subsystem is
+	correctly working. In case of any problem, a debugging message is printed and another attempt to turn on the radio is performed*/
+	event void RadioControl.startDone(error_t error){
+		radioOn=error;
+		if(error!=SUCCESS){
+			printf("Could not initialize the radio\n");
+			printfflush();
+			post startRadio();
+			return;
+		}
+		call Leds.led0On();
+		if(TOS_NODE_ID==ROOT_ID){
+			/*Set this mote as the root of the collection tree protocol*/
+			rootOn=call RootControl.setRoot();
+			while(rootOn!=SUCCESS){
+				printf("Could not set the mote as root of the collection tree\n");
+				call RootControl.setRoot();
+			}
+		}
+		printfflush();
+	}
+	
+	/*The radio is never stopped, so this event will never be signaled; anyway, according to nesC language,
+	the handler for this event has to be present*/
 	event void RadioControl.stopDone(error_t error){
 	
 	}
 	
-	event void Timer.fired(){
+	/*This event is signaled when the mote intercepts a packet whose destination is the root node:it updates the "hopcount" and
+	"message_path" fields of the payload in order to track the path of the message, namely the nodes on its path to the root, and then
+	forwards the packet. Note that when a packet is received by the underlying layer of the collection tree protocol, two distinct events
+	may be signaled: "receive" (from the Receive interface) in case the mote is the root of the collection tree, "forward" (from the
+	Intercept interface) otherwise. (see "TinyOS - TEP 119" and component "CtpForwardingEngineP").*/
+	event bool Intercept.forward(message_t* msg, void* payload, uint8_t len){
+		dataReceived=(acceleration_msg_t*)payload;
+		if(dataReceived!=NULL && sizeof(acceleration_msg_t)==len){
+			dataReceived->message_path[dataReceived->hopcount]=TOS_NODE_ID;
+			dataReceived->hopcount++;
+			/*Toggle the led1 to indicate that the mote is forwarding messages*/
+			call Leds.led1Toggle();
+			/*The current packet can be forwarded*/
+			return TRUE;
+		}
+		printf("Packet not well formed: discarding it...\n");
+		printfflush();
+		/*The current packet can't be forwarded since it's not well formed*/
+		return FALSE;
+	}
+	
+	/*REMOVE event void Timer.fired(){
 		printf("HERE %d",parent);
 		if(parent!=NULL){
 			call LinkEstimator.getLinkQuality(1);
@@ -117,130 +159,109 @@ implementation{
 				}
 		}
 		printfflush();
-	}
+	}*/
 	
+	/*When a message is received by underlying layer of the collection tree protocol and the mote is the root of the tree, the event
+	"receive" is signaled: the mote acts as a gateway towards the Internet, hence the message has to be sent to the UART so that
+	data will be updated on Parse by a pc. The mote maintains a FIFO queue containing the packets received: every time the serial
+	port is not busy, the first element of the queue is sent through the serial port itself. In this way it is guaranteed that no packet
+	is discarded and that they are sent to the pc (hence uploaded on Parse) in the same order as they are received by the root mote.
+	Obviously this holds iff the arrival rate of packets is not such that the queue gets full before the packets are sent through the 
+	UART; the size of the queue can be tuned, as well as the sampling period, by mean of variables in the header file "Acceleration.h"*/
 	event message_t* RootReceive.receive(message_t* msg, void* payload, uint8_t len){
-		//printf("Size:%d,%d",len,sizeof(&payload));
-		if(len!=sizeof(acceleration_msg_t)){
-			printf("Packet not well formed");
+		dataReceived=(acceleration_msg_t*)(payload);
+		/*Check if the packet is well formed, namely the "len" parameter is equal to the size of the payload of the message*/
+		if(dataReceived!=NULL && len==sizeof(acceleration_msg_t)){
+			/*If the message is well formed, put it into the queue and then start a task to send it to the serial port*/
+			queueFull=call Queue.enqueue(msg);
+			/*Check if the queue is already full: if so, the packet is discarded and a debug message is printed*/
+			if(queueFull!=SUCCESS){
+				printf("The sending queue is full or some other problem has occurred! Discarding packet...\n");
+				printfflush();
+			}
+		}
+		else{
+			/*If the message is not well formed, discard it*/
+			printf("Packet not well formed: discarding it...\n");
 			printfflush();
 		}
-		call Leds.led0Toggle();
-		src=call CollectionPacket.getOrigin(msg);
-		measure=(acceleration_msg_t*)(payload);
-		printf("Origin %d\n",src);
-		printf("X received:%d\n",measure->x_acceleration);
-		printf("Y received:%d\n",measure->y_acceleration);
-		printf("Z received:%d\n",measure->z_acceleration);
-		printf("Parent:%d\n",measure->link_path_addr);
-		parent=measure->link_path_addr;
-		printf("Quality:%d\n",measure->quality);
-		printf("Value:%d\n",measure->link_path_value);
-		printfflush();
+		/*Start the task to send the queued packets*/
+		post sendSerialMessage();
+		/*The interface "Receive" has a buffer-swap policy (see "TinyOS - TEP 116"): this forces the handler of the event "receive"
+		to always return the message buffer (msg) to the signaler of the event, because this prevent lower layers of the communication
+		stack from being blocked by upper layers; in this way any problem related with the management of the packets by a component (for
+		example "NodeC") doesn't involve other components.*/
+		return msg;
+	}
+	
+	/*This task is in charge of sending the packets (received from the radio subsystem) to the gateway terminal through the serial port.
+	In case the mote is already busy sending another packet to the UART, the task returns without doing nothing, otherwise it
+	sends a packet through the serial port using the broadcast address*/
+	task void sendSerialMessage(){
 		if(!serialBusy){
-			acceleration_msg_t* serialPayload=(acceleration_msg_t*)call AMSend.getPayload(&serialMessage,sizeof(acceleration_msg_t));
-				if(payload!=NULL){
-					memcpy(serialPayload,(acceleration_msg_t*)payload,sizeof(acceleration_msg_t));
-					serialBusy=TRUE;
+			/*Get the pointer to the payload area of the serial message buffer (serialMessage)*/
+			payloadSerial=(acceleration_msg_t*)call AMSend.getPayload(&serialMessage,sizeof(acceleration_msg_t));
+			/*If this pointer is NULL, it means that the maximum space for the payload of the packets of the TelosB
+			is not sufficient for the data that are trying to be sent: this is something that should never happen*/
+			if(payloadSerial!=NULL){
+				/*Get the first element from the queue, but WITHOUT REMOVING IT from the queue itself. In fact, since we 
+				want packets to be delivered to uart in the same order as they are received via radio, if the packet was dequeued before 
+				actually being sent, it may be that some problem occurr during the sending phase and then it would be
+				lost or, at least, it would only be possible to put it again in the queue as last element, thus messing up
+				the order of packets*/
+				queueHead=call Queue.head();
+				/*Check if the queue is empty*/
+				if(queueHead!=NULL){
+					dataToSend=(acceleration_msg_t*)call AMSend.getPayload(queueHead,sizeof(acceleration_msg_t));
+					/*The packet that is going to be sent through the UART has the same payload as the packet taken from the
+					queue, so the C function "memcpy" is used to copy the payload of the radio packet into the serial buffer*/
+					memcpy(payloadSerial,dataToSend,sizeof(acceleration_msg_t));
+					/*Send the packet trough uart*/
 					sendingToSerial=call AMSend.send(0xffff,&serialMessage,sizeof(acceleration_msg_t));
+					/*In case of any problem while sending the message, turn on led 1*/
 					if(sendingToSerial!=SUCCESS){
 						call Leds.led1On();
 					}
-				}
-				else{
-					call Leds.led1On();
-				}
-		}
-		/*if(!busy){
-			acceleration_msg_t* Payload=(acceleration_msg_t*)call Send.getPayload(&message,sizeof(acceleration_msg_t));
-				if(payload!=NULL){
-					((acceleration_msg_t*)payload)->origin=TOS_NODE_ID;
-					call CtpInfo.getEtx(&quality);
-					call CtpInfo.getParent(&parent);
-					((acceleration_msg_t*)payload)->quality=quality;
-					((acceleration_msg_t*)payload)->link_path_addr=parent;
-					((acceleration_msg_t*)payload)->link_path_value= call LinkEstimator.getLinkQuality(parent);
-					printf("ETX:%d, PARENT:%d, QUALITY:%d",quality,parent,call LinkEstimator.getLinkQuality(parent));
-					memcpy(Payload,(acceleration_msg_t*)payload,sizeof(acceleration_msg_t));
-					busy=TRUE;
-					sendingToRadio=call Send.send(&message,sizeof(acceleration_msg_t));
-					printf("SENT TO RADIO?%d",sendingToRadio);
-					if(sendingToRadio!=SUCCESS){
-						call Leds.led1On();
+					else{
+						serialBusy=TRUE;
 					}
 				}
 				else{
-					call Leds.led1On();
+					printf("The queue is empty! No message left to send\n");
+					printfflush();
 				}
-		}*/
-		return msg;
+			}
+		}
 	}
 	
+	/*If the sending phase was successfull, it's time to dequeue the packet and to send the next packets in the queue, whether existing;
+	also a confirmation message is printed, led 2 is toogled and led 1 is turned off, in case it was on because of a preceeding error.
+	If some problem occurs during the sending phase, leds 1 is turned on and a debugging message is printed*/
 	event void AMSend.sendDone(message_t* msg, error_t error){
+		/*The uart is no longer busy*/
 		serialBusy=FALSE;
-		call Leds.led1Off();
-	}
-	
-	event void Send.sendDone(message_t* msg, error_t error){
-		printf("SEND DONE");
-		busy=FALSE;
+		if(error==SUCCESS){
+			printf("Message correctly sent\n");
+			/*Since we are at this point, there must be at least one element in the queue*/
+			call Queue.dequeue();
+			call Leds.led2Toggle();
+			call Leds.led1Off();
+			if(call Queue.empty()==FALSE){
+				/*The queue is not empty, meaning that there are some more packets to send, then schedule a new sending
+				phase*/
+				post sendSerialMessage();
+			}
+		}
+		else{
+			printf("An error occurred while sending message\n");
+			call Leds.led1On();
+		}
 		printfflush();
 	}
 	
-	event bool Intercept.forward(message_t* msg, void* payload, uint8_t len){
-		printf("INTERCEPT\n");
-		printfflush();
-		return TRUE;
-	}
-	
-	event message_t* Snoop.receive(message_t* msg, void* payload, uint8_t len){
-		printf("SNOOP\n");
-		printfflush();
-		return msg;
-	}
-	
+	/*Event handler for the event "evicted" of the LinkEstimator, which is signaled when a neighbor node is deleted by the neighbor table*/
 	event void LinkEstimator.evicted(am_addr_t addr){
-		printf("%d EVICTED",addr);
+		printf("Neighbor %d evicted",addr);
 		printfflush();
 	}
-	
-	command error_t CollectionDebug.logEvent(uint8_t type){
-		printf("EVENT NODE:%d\n",type);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventSimple(uint8_t type, uint16_t arg){
-		printf("SIMPLE EVENT NODE:%u ARG:%u\n",type,arg);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventDbg(uint8_t type, uint16_t arg1, uint16_t arg2, uint16_t arg3){
-		printf("DBG EVENT NODE:%u\n",type);
-		printf("ARG1:%u\n",arg1);
-		printf("ARG2:%u\n",arg2);
-		printf("ARG3:%u\n",arg3);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventMsg(uint8_t type, uint16_t msg, am_addr_t origin, am_addr_t node){
-		printf("LOG EVENT NODE:%u\n",type);
-		printf("MSG:%u\n",msg);
-		printf("ORIGIN:%u\n",origin);
-		printf("NODE:%u\n",node);
-		printfflush();
-		return SUCCESS;
-	}
-	
-	command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric){
-		printf("ROUTE EVENT NODE:%u\n",type);
-		printf("PARENT:%u\n",parent);
-		printf("HOP COUNT:%u\n",hopcount);
-		printf("METRIC:%u\n",metric);
-		printfflush();
-		return SUCCESS;
-	}
-	
 }

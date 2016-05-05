@@ -28,94 +28,103 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package net.tinyos.mviz;
 
 import java.lang.reflect.*;
 import java.util.*;
 
 public class DataModel {
+
     Vector packetClasses = new Vector();
     Vector fields = new Vector();
     Vector links = new Vector();
+    Vector vectors = new Vector();
 
     public DataModel(Vector messageNames) {
-	createPackets(messageNames);
-	parseFieldsAndLinks();
+        createPackets(messageNames);
+        parseFieldsAndLinks();
     }
 
     public Vector fields() {
-	return fields;
+        return fields;
     }
 
     public Vector links() {
-	return links;
+        return links;
     }
-	
+
+    public Vector vector() {
+        return vectors;
+    }
+
     private void createPackets(Vector messageNames) {
-	for (int i = 0; i < messageNames.size(); i++) {
-	    try {
-		System.out.println("Making " + messageNames.elementAt(i));
-		Class c = Class.forName((String)messageNames.elementAt(i));
-		packetClasses.add(c);
-	    }
-	    catch (ClassNotFoundException ex) {
-		System.err.println("Unable to find message type " + messageNames.elementAt(i) + ": please check your CLASSPATH.");
-	    }
-	}
+        for (int i = 0; i < messageNames.size(); i++) {
+            try {
+                Class c = Class.forName((String) messageNames.elementAt(i));
+                packetClasses.add(c);
+            } catch (ClassNotFoundException ex) {
+                System.err.println("Unable to find message type " + messageNames.elementAt(i) + ": please check your CLASSPATH.");
+            }
+        }
     }
 
     private boolean isSubClass(Class subC, Class superC) {
-	if (subC == superC) {return false;}
-	for (Class tmp = subC.getSuperclass(); tmp != null; tmp = tmp.getSuperclass()) {
-	    if (tmp.equals(superC)) {
-		return true;
-	    }
-	}
-	return false;
+        if (subC == superC) {
+            return false;
+        }
+        for (Class tmp = subC.getSuperclass(); tmp != null; tmp = tmp.getSuperclass()) {
+            if (tmp.equals(superC)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void parseFieldsAndLinks() {
-	net.tinyos.message.Message msg = new net.tinyos.message.Message(0);
-	Class messageClass = msg.getClass();
-	for (int i = 0; i < packetClasses.size(); i++) {
-	    Class pkt = (Class)packetClasses.elementAt(i);
-	    if (!(isSubClass(pkt, messageClass))) {
-		continue;
-	    }
-	    loadFieldsAndLinks(pkt);
-	}
+        net.tinyos.message.Message msg = new net.tinyos.message.Message(0);
+        Class messageClass = msg.getClass();
+        for (int i = 0; i < packetClasses.size(); i++) {
+            Class pkt = (Class) packetClasses.elementAt(i);
+            if (!(isSubClass(pkt, messageClass))) {
+                continue;
+            }
+            loadFieldsAndLinks(pkt);
+        }
     }
 
     private void loadFieldsAndLinks(Class pkt) {
-	Method[] methods = pkt.getMethods();
-	for (int i = 0; i < methods.length; i++) {
-	    Method method = methods[i];
-	    String name = method.getName();
-	    if (name.startsWith("get_") && !name.startsWith("get_link")) {
-		name = name.substring(4); // Chop off "get_"
-		Class[] params = method.getParameterTypes();
-		if (params.length == 0 && !method.getReturnType().isArray()) {
-		    loadField(name, method, method.getReturnType());
-		    System.out.println("Loading " + name);
-		}
-	    }
-	    else if (name.startsWith("get_link_") && name.endsWith("_value")) {
-		name = name.substring(9); // chop off "get_link_"
-		name = name.substring(0, name.length() - 6); // chop off "_value"
-		Class[] params = method.getParameterTypes();
-		if (params.length == 0) {
-		    loadLink(name, method, method.getReturnType());
-		}
-	    }
-	}
+        Method[] methods = pkt.getMethods();
+        for (int i = 0; i < methods.length; i++) {
+            Method method = methods[i];
+            String name = method.getName();
+            if (name.startsWith("get_") && !name.startsWith("get_link")) {
+                name = name.substring(4); // Chop off "get_"
+                Class[] params = method.getParameterTypes();
+                if (params.length == 0 && !method.getReturnType().isArray()) {
+                    loadField(name, method, method.getReturnType());
+                } else {
+                    loadArray(name, method, method.getReturnType());
+                }
+            } else if (name.startsWith("get_link_") && name.endsWith("_value")) {
+                name = name.substring(9); // chop off "get_link_"
+                name = name.substring(0, name.length() - 6); // chop off "_value"
+                Class[] params = method.getParameterTypes();
+                if (params.length == 0) {
+                    loadLink(name, method, method.getReturnType());
+                }
+            }
+        }
     }
 
     private void loadField(String name, Method method, Class param) {
-	fields.add(name);
+        fields.add(name);
     }
+
     private void loadLink(String name, Method method, Class param) {
-	System.out.println("Loading link <" + name + ">");
-	links.add(name);
+        links.add(name);
+    }
+
+    private void loadArray(String name, Method method, Class param) {
+        vectors.add(name);
     }
 }

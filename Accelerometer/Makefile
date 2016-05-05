@@ -7,13 +7,13 @@ CFLAGS+=-I$(TOSDIR)/lib/printf
 CFLAGS+=-I./adxl
 CFLAGS+=-I./adxl345
 CFLAGS+=-I./..
-BUILD_EXTRA_DEPS = MVizMsg.class
+BUILD_EXTRA_DEPS = JavaMsg.class
 CLEAN_EXTRA = *.class *.java
 
-MVizMsg.java: ../Acceleration.h
-	mig -target=null -java-classname=MVizMsg java ../Acceleration.h acceleration_msg -o $@
+JavaMsg.java: ../Acceleration.h
+	mig -target=null -java-classname=JavaMsg java ../Acceleration.h acceleration_msg -o $@
 
-MVizMsg.class: MVizMsg.java
-	javac MVizMsg.java
+JavaMsg.class: JavaMsg.java
+	javac JavaMsg.java
 
 include $(MAKERULES)
