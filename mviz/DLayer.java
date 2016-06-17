@@ -31,100 +31,98 @@
 
 package net.tinyos.mviz;
 
-// DDocument.java
-
 import java.awt.*;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-
 import java.util.*;
 import java.awt.event.*;
-import java.io.*;
-
-import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
-import javax.swing.table.*;
-
-import java.awt.image.*;
-
-// Standard imports for XML
-import javax.xml.parsers.*;
-import org.xml.sax.*;
-import org.w3c.dom.*;
 
 /**
- * Class representing one layer in the navigator.
- * In the original version a layer comprises a checkbox, a label and
- * two buttons to move the layer up or down within the navigator
- * @author user
- *
+ * Class representing one layer in the links-viewer
+ * 
  */
 
 public class DLayer extends JPanel implements ActionListener {
-	
+
 	/**
-	 * Constants representing the three different types of layers in the navigator
+	 * Constants representing the three different types of layers in the
+	 * links-viewer
 	 */
 
 	public static final int MOTE = 0;
 	public static final int LINK = 1;
 	public static final int FIELD = 2;
-	
+
 	/**
-	 * Three colors, one per type of layer in the navigator
+	 * Three colors, one per type of layer in the links-viewer
 	 */
-	
+
 	private static final Color[] COLORS = { new Color(231, 220, 206),
-			new Color(250, 210, 99), new Color(209, 230, 179) };
+		new Color(250, 210, 99), new Color(209, 230, 179) };
 
 	private int type;
+
+	/**
+	 * Index of the layer withing the group it belongs to (motes,fields or
+	 * links)
+	 */
+
 	protected int index;
+
+	/**
+	 * Vertical index of the layer within the links-viewer TO BE CHECKED: never
+	 * used??? (z_index too)
+	 */
+
 	protected int zIndex;
+	protected int value;
 	protected int z_index = 0;
 	private ArrayList layer = new ArrayList();
 
 	private JLabel label;
-	
+
 	/**
-	 * CheckBox to display the layer in the navigator
+	 * CheckBox to display the layer in the links-viewer
 	 */
-	
+
 	private JCheckBox check;
-	
+
 	/**
-	 * Labels for the options in the ComboBox of each layer:for each type of DLayer, there's
-	 * a specific set of labels, respectively MOTE("circle", "img", "txt"), LINK("line", "line+label", "label")
-	 * and FIELD ("color 256", "color 1024", "color 4096", "color 16384").
+	 * Labels for the options in the ComboBox of each layer:for each type of
+	 * DLayer, there's a specific set of labels, respectively MOTE("circle",
+	 * "img", "txt"), LINK("line", "line+label", "label") and FIELD
+	 * ("color 256", "color 1024", "color 4096", "color 16384").
 	 */
-	
-	private String[][] DISPLAYS = { { "circle", "img", "txt" },
-			{ "line", "line+label", "label" },
+
+	private String[][] DISPLAYS = { { "img", "circle", "txt" },
+			{ "line+label", "line", "label" },
 			{ "color 256", "color 1024", "color 4096", "color 16384" } };
-	
+
 	/**
 	 * A ComboBox to choose the option for each type of layer
 	 */
-	
+
 	private JComboBox displays;
-	
+
 	/**
 	 * List of motes
 	 */
 
 	private ArrayList models;
-	
+
+	private DLinkModel model;
+
 	/**
 	 * List of links
 	 */
-	
+
 	private ArrayList linkModels;
-	
+
 	/**
 	 * TO BE CHECKED (???)
 	 */
-	
+
 	protected int paintMode = 0;
 	// Values chosen for COLOR so that readings can be right shifted
 	// that many bits to be in range 0-255
@@ -138,59 +136,61 @@ public class DLayer extends JPanel implements ActionListener {
 	static public final int LINE = 7;
 	static public final int LABEL = 8;
 	static public final int LINE_LABEL = 9;
-	
+
 	/**
-	 * The navigator each DLayer belongs to
+	 * The links-viewer each DLayer belongs to
 	 */
-	
-	protected DNavigate navigator;
-	
+
+	protected DLinksViewer linksViewer;
+
 	/**
 	 * Name of the layer
 	 */
-	
+
 	private String name;
-	
+
 	/**
 	 * Parent container of the DLayer
 	 */
-	
+
 	private DDocument parent;
-	
+
 	/**
 	 * Constructor for DLayer
+	 * 
 	 * @param zIndex
 	 * @param index
 	 * @param label
 	 * @param type
 	 * @param parent
 	 * @param models
-	 * @param navigator
+	 * @param linksViewer
 	 */
-	
+
 	public DLayer(int zIndex, int index, String label, int type,
-			DDocument parent, ArrayList models, DNavigate navigator) {
-  		this.parent = parent;
+			DDocument parent, ArrayList models, DLinksViewer linksViewer) {
+		this.parent = parent;
 		this.type = type;
 		this.models = models;
 		this.zIndex = zIndex;
 		this.index = index;
-		this.navigator = navigator;
+		System.out.println("index constr:"+index);
+		this.linksViewer = linksViewer;
 		this.name = label;
-		
+
 		/**
 		 * Motes are represented with ovals, links are represented with lines
 		 */
-		
+
 		if (type == MOTE) {
-			this.paintMode = OVAL;
+			this.paintMode = IMG;
 		} else if (type == LINK) {
 			this.paintMode = LINE;
 		}
-		
+
 		/**
-		 * SpringLayout lays out the children of its associated container according to a set of constraints
-		 * between edges of components
+		 * SpringLayout lays out the children of its associated container
+		 * according to a set of constraints between edges of components
 		 */
 
 		SpringLayout layout = new SpringLayout();
@@ -198,47 +198,48 @@ public class DLayer extends JPanel implements ActionListener {
 		/**
 		 * Set the Layout Manager for DLayer
 		 */
-		
+
 		setLayout(layout);
-		
+
 		/**
 		 * Set maximum size of a DLayer
 		 */
-		
+
 		setMaximumSize(new Dimension(350, 25));
-		
+
 		/**
 		 * Set preferred size of a DLayer
 		 */
-		
+
 		setPreferredSize(new Dimension(350, 25));
-		
+
 		/**
 		 * Set size of a DLayer
 		 */
-		
+
 		setSize(new Dimension(350, 25));
-		
+
 		/**
 		 * Use double buffering for DLayers
 		 */
-		
+
 		setDoubleBuffered(true);
-		
+
 		/**
 		 * Background color of a DLayer depends on its type
 		 */
-		
+
 		setBackground(COLORS[type]);
-		
+
 		/**
 		 * Set the border of the DLayer
 		 */
-		
+
 		setBorder(new LineBorder(new Color(155, 155, 155)));
-		
+
 		/**
-		 * Create a CheckBox to be selected in order to show a field or a link in the canvas
+		 * Create a CheckBox to be selected in order to show a field or a link
+		 * in the canvas
 		 */
 
 		check = new JCheckBox();
@@ -246,7 +247,7 @@ public class DLayer extends JPanel implements ActionListener {
 		check.setMaximumSize(new Dimension(35, 25));
 		check.setMinimumSize(new Dimension(35, 25));
 		check.setPreferredSize(new Dimension(35, 25));
-		
+
 		/**
 		 * Create a JLabel for each DLayer
 		 */
@@ -256,57 +257,41 @@ public class DLayer extends JPanel implements ActionListener {
 		this.label.setMaximumSize(new Dimension(125, 25));
 		this.label.setMinimumSize(new Dimension(125, 25));
 		this.label.setPreferredSize(new Dimension(125, 25));
-		
+
 		/**
-		 * Set a different background color for a layer depending on
-		 * its type
-		 */
-		
-		switch (type) {
-		case MOTE:
-			this.label.setBackground(new Color(255, 200, 200));
-			break;
-		case FIELD:
-			this.label.setBackground(new Color(200, 255, 200));
-			break;
-		case LINK:
-			this.label.setBackground(new Color(200, 200, 255));
-			break;
-		}
-		
-		/**
-		 * Create a ComboBox whose options are the elements in the array given to the constructor;
-		 * these elements are selected depending on the type of the current layer
+		 * Create a ComboBox whose options are the elements in the array given
+		 * to the constructor; these elements are selected depending on the type
+		 * of the current layer
 		 */
 
 		displays = new JComboBox(DISPLAYS[type]);
 		displays.setSize(100, 25);
 		displays.setMinimumSize(new Dimension(125, 25));
 		displays.setPreferredSize(new Dimension(125, 25));
-		
+
 		/**
 		 * The layer listens for events from checkbox and combobox
 		 */
 
 		check.addActionListener(this);
 		displays.addActionListener(this);
-		
+
 		/**
-		 * Link EAST edge of label to WEST edge of combobox with no distance (0) between
-		 * edges
+		 * Link EAST edge of label to WEST edge of combobox with no distance (0)
+		 * between edges
 		 */
 
 		layout.putConstraint(SpringLayout.EAST, this.label, 0,
 				SpringLayout.WEST, displays);
-		
+
 		/**
-		 * Link EAST edge of combobox to EAST edge of the layer with no distance (0) between
-		 * edges
+		 * Link EAST edge of combobox to EAST edge of the layer with no distance
+		 * (0) between edges
 		 */
-		
+
 		layout.putConstraint(SpringLayout.EAST, displays, 0, SpringLayout.EAST,
 				this);
-		
+
 		/**
 		 * Add components to the layout
 		 */
@@ -317,77 +302,127 @@ public class DLayer extends JPanel implements ActionListener {
 
 	}
 
+	public DLayer(String name,int value,int type,
+			DDocument parent,DLinksViewer linksViewer,DLinkModel model){
+		this.parent = parent;
+		this.type = type;
+		this.linksViewer = linksViewer;
+		this.name = name;
+		this.value=value;
+		this.model=model;
+
+		/**
+		 * Motes are represented with ovals, links are represented with lines
+		 */
+
+		if (type == MOTE) {
+			this.paintMode = IMG;
+		} else if (type == LINK) {
+			this.paintMode = LINE_LABEL;
+		}
+
+		/**
+		 * SpringLayout lays out the children of its associated container
+		 * according to a set of constraints between edges of components
+		 */
+
+		SpringLayout layout = new SpringLayout();
+
+		/**
+		 * Set the Layout Manager for DLayer
+		 */
+
+		setLayout(layout);
+
+		/**
+		 * Set maximum size of a DLayer
+		 */
+
+		setMaximumSize(new Dimension(350, 25));
+
+		/**
+		 * Set preferred size of a DLayer
+		 */
+
+		setPreferredSize(new Dimension(350, 25));
+
+		/**
+		 * Set size of a DLayer
+		 */
+
+		setSize(new Dimension(350, 25));
+
+		/**
+		 * Use double buffering for DLayers
+		 */
+
+		setDoubleBuffered(true);
+
+		/**
+		 * Background color of a DLayer depends on its type
+		 */
+
+		setBackground(COLORS[type]);
+
+		/**
+		 * Set the border of the DLayer
+		 */
+
+		setBorder(new LineBorder(new Color(155, 155, 155)));
+
+		/**
+		 * Create a JLabel for each DLayer
+		 */
+
+		this.label = new JLabel(" " + name, JLabel.CENTER);
+		this.label.setSize(125, 25);
+		this.label.setMaximumSize(new Dimension(125, 25));
+		this.label.setMinimumSize(new Dimension(125, 25));
+		this.label.setPreferredSize(new Dimension(125, 25));
+		
+		/**
+		 * Link EAST edge of label to WEST edge of combobox with no distance (0)
+		 * between edges
+		 */
+
+		layout.putConstraint(SpringLayout.WEST, this.label, 0,SpringLayout.WEST, this);
+
+		/**
+		 * Link EAST edge of combobox to EAST edge of the layer with no distance
+		 * (0) between edges
+		 */
+
+		layout.putConstraint(SpringLayout.EAST, this.label, 0, SpringLayout.EAST,this);
+
+		/**
+		 * Add components to the layout
+		 */
+
+		add(this.label);
+		add(new TextField(new Integer(model.getQuality()).toString()));
+	}
+
 	public boolean isFieldSelected() {
 		return (type == FIELD && check.isSelected());
 	}
-	
+
 	/**
-	 * Method to be defined by those classes that implement the
-	 * ActionListener interface: it's the event handler
+	 * Method to be defined by those classes that implement the ActionListener
+	 * interface: it's the event handler
 	 */
 
 	public void actionPerformed(ActionEvent e) {
-		
-		/**
-		 * Checkbox has been clicked
-		 */
-		
-		if (e.getSource() == check) {
-			
-			/**
-			 * If checkbox has been checked, set the corresponding variable in the
-			 * parent DDocument, otherwise do nothing
-			 * TO BE CHECKED (???)
-			 */
-			
-			if (check.isSelected()) {
-				
-				parent.selectedFieldIndex = index;
-				// System.out.println("redraw index " +zIndex +" on layer");
-			} else if (type == FIELD) {
-				// System.out.println("clear");
-				// parent.canvas.repaint();
-				// repaintLayer(g);
-			} else {
-				// repaintLayer(g);
-			}
-			
-			/**
-			 * The selected option in the ComboBox has changed: each option
-			 * corresponds to a different visualization mode
-			 */
-			
-		} else if (e.getSource() == displays) {
-			String selected = (String) displays.getSelectedItem();
-			if (selected.equals("circle")) {
-				paintMode = OVAL;
-			} else if (selected.equals("img")) {
-				paintMode = IMG;
-			} else if (selected.equals("txt")) {
-				paintMode = TXT_MOTE;
-			} else if (selected.equals("color 256")) {
-				paintMode = COLOR_256;
-			} else if (selected.equals("color 1024")) {
-				paintMode = COLOR_1024;
-			} else if (selected.equals("color 4096")) {
-				paintMode = COLOR_4096;
-			} else if (selected.equals("color 16384")) {
-				paintMode = COLOR_16384;
-			} else if (selected.equals("line")) {
-				paintMode = LINE;
-			} else if (selected.equals("label")) {
-				paintMode = LABEL;
-			} else if (selected.equals("line+label")) {
-				paintMode = LINE_LABEL;
-			}
-		}
+
 		// System.out.println("Repainting parent?");
 		// parent.repaint();
+		parent.linksViewer.drawLayer(getName());
 	}
-	
+
 	/**
-	 * This method is invoked from the the navigator, which is the
-	 * container for the layers. It's use
+	 * REMOVE: never invoked because the only caller is init()
+	 * from DNavigate, which is never called on its turn
+	 * This method is invoked from the the links-viewer, which is the container for
+	 * the layers.
 	 */
 
 	public void init() {
@@ -410,18 +445,19 @@ public class DLayer extends JPanel implements ActionListener {
 	// if (paint) mm.repaint();
 	// }
 	// }
-	
+
 	/**
-	 * Add the single mote to the canvas. Motes are instances of
-	 * the class DMote and derive from the class DShape
+	 * Add the single mote to the canvas. Motes are instances of the class DMote
+	 * and derive from the class DShape
+	 * 
 	 * @param model
 	 */
 
 	protected void addMote(DMoteModel model) {
-		DShape mote = new DMote(model, this.parent, this);
+		DShape mote = new DMote(model, this.parent);
 		layer.add(mote);
 	}
-	
+
 	/**
 	 * Add motes to the canvas
 	 */
@@ -432,27 +468,27 @@ public class DLayer extends JPanel implements ActionListener {
 			addMote((DMoteModel) it.next());
 		}
 	}
-	
+
 	/**
-	 * Update index of the layer, namely the vertical position
-	 * within the navigator
+	 * Update index of the layer, namely the vertical position within the
+	 * links-viewer
+	 * 
 	 * @param index
 	 */
 
 	public void updateIndex(int index) {
-		
+
 		/**
-		 * The index of this layer within the navigator
+		 * The index of this layer within the links-viewer
 		 */
-		
+
 		zIndex = index;
-		
+
 		/**
-		 * The actual position of the layer within the
-		 * navigator
+		 * The actual position of the layer within the links-viewer
 		 */
-		
-		z_index = (navigator.totalLayers - zIndex) * 100;
+
+		z_index = (linksViewer.totalLayers - zIndex) * 100;
 		// parent.canvas.setLayer(d.canvas, length - i);
 	}
 
@@ -474,13 +510,13 @@ public class DLayer extends JPanel implements ActionListener {
 				while (it.hasNext()) {
 					DMoteModel m = (DMoteModel) it.next();
 					double dist = distance(x, y, m.x, m.y);
-					if (true) { // 121
-						if (dist < min)
-							min = dist;
-						val += ((double) (((int) m.getValue(index)) >> paintMode))
-								/ dist / dist;
-						sum += (1 / dist / dist);
+					if (dist < min)
+						min = dist;
+					if(this.index!=0){
+						System.out.println("index:"+this.index);
 					}
+					//val += ((double) (((int) m.getValue(this.index)) >> paintMode))/ dist / dist;
+					sum += (1 / dist / dist);
 				}
 				int reading = (int) (val / sum);
 				// System.out.println("Reading: " + reading);
@@ -500,34 +536,37 @@ public class DLayer extends JPanel implements ActionListener {
 	}
 
 	protected void repaintLayer(Graphics g) {
-		if (check.isSelected()) {
-			if (type == FIELD) {
-				paintScreenBefore(g);
-			} else if (type == LINK) {
-				Iterator it = models.iterator();
-				// System.out.print("Draw links: ");
-				while (it.hasNext()) {
-					DLinkModel model = (DLinkModel) it.next();
-					DLink lnk = new DLink(model, parent, this);
-					lnk.paintShape(g);
-					// System.out.print("+");
-				}
-				// System.out.println();
-			} else if (type == MOTE) {
-				Iterator it = models.iterator();
-				// System.out.print("Draw motes: ");
-				while (it.hasNext()) {
-					DMoteModel model = (DMoteModel) it.next();
-					DShape m = new DMote(model, parent, this);
-					m.paintShape(g);
-					// System.out.print("+");
-				}
-				// System.out.println();
+		if (type == FIELD) {
+
+			/**
+			 * Before actually printing motes and links among them, print
+			 * the canvas on which they will be drawn
+			 */
+
+			//paintScreenBefore(g);
+		} else if (type == LINK) {
+			DLink lnk = new DLink(model, parent,Color.RED,1);
+			lnk.paintShape(g);
+		} else if (type == MOTE) {
+			Iterator it = models.iterator();
+			while (it.hasNext()) {
+				DMoteModel model = (DMoteModel) it.next();
+				DShape m = new DMote(model, parent);
+				m.paintShape(g);
 			}
 		}
+
 	}
 
 	public JLabel getLabel() {
 		return this.label;
+	}
+
+	public void setSelected() {
+		check.setSelected(true);
+	}
+
+	public String getName(){
+		return name;
 	}
 }

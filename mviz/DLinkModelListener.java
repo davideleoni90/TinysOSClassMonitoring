@@ -30,10 +30,6 @@
  */
 
 package net.tinyos.mviz;
-
-
-import java.util.EventListener;
-
 public interface DLinkModelListener{
     public void shapeChanged(DLinkModel changed, int type); 
 }

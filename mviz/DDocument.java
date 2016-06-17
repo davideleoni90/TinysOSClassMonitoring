@@ -39,16 +39,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
-import java.lang.reflect.*;
-import java.net.*;
 import java.util.*;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.*;
-
-import net.tinyos.message.*;
+import javax.swing.text.BadLocationException;
 
 /*
  * import classes to handle http requests
@@ -59,6 +61,12 @@ import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.entity.*;
 import org.json.*;
+
+import com.sun.corba.se.impl.encoding.OSFCodeSetRegistry.Entry;
+import com.sun.org.apache.bcel.internal.generic.NEW;
+import com.sun.org.apache.xml.internal.dtm.ref.DTMDefaultBaseIterators.ParentIterator;
+
+import sun.applet.Main;
 
 /**
  * DDOCUMENT: ->This is the class which is actually invoked when executing the
@@ -79,15 +87,15 @@ extends JPanel
  * comprises only one method "actionPerformed" which is the basic event handler
  */
 
-implements ActionListener {
+implements ActionListener, TableModelListener {
 
 	/**
 	 * the name of the Java classes, produced with "mig" tool, representing the
 	 * messages sent by the network of motes
 	 */
 
-	static final String messagesJavaClass = "SensorsDataMsg";
-	
+	static final String messagesJavaClass = "node.SensorsDataMsg";
+
 	/**
 	 * Data from sensors, after having being uploaded on Parse
 	 * repository can be retrieved through HTTP GET requests.
@@ -98,43 +106,81 @@ implements ActionListener {
 	 * Values for these headers are written in the java file
 	 * property.
 	 */
-	
+
 	static final String parseApplicationIdHeader ="X-Parse-Application-Id";
 	static final String parseRESTApiKeyHeader ="X-Parse-REST-API-Key";
 
 	protected String directory;
 	protected String moteImg;
-	protected String parseRequestURL;
+	protected String hostImg;
+	protected String parseGetURL;
+	protected String parsePostURL;
 	protected String parseApplicationId;
 	protected String parseRESTApiKey;
 	protected JPanel canvas;
-	protected Vector layers;
 
-	private Color currentColor;
+	/**
+	 * The ID of the root mote
+	 */
 
-	public float[] maxValues;
-	public int selectedFieldIndex;
-	public int selectedLinkIndex;
-	public ImageIcon icon;
-	public Image image;
+	protected int rootMote;
 
-	public DNavigate navigator;
+	/**
+	 * Image used to draw motes on canvas
+	 */
 
-	public Color getColor() {
-		return currentColor;
-	}
+	public Image motesImage;
 
-	public Vector sensed_motes;
-	public Vector sensed_links;
-	public ArrayList moteModels;
-	public ArrayList linkModels;
-	private JTextField jText;
-	private DrawTableModel tableModel;
-	private JTable jTable;
+	/**
+	 * Dimension of the image chosen to represent the motes
+	 */
 
-	/*
-	 * SENSORS DATA TABLE ->components for the table with data from sensors -
-	 * start
+	public Dimension motesImageDimension;
+
+	/**
+	 * Dimension of the image chosen to represent the host
+	 */
+
+	public Dimension hostImageDimension;
+
+	/**
+	 * Image used to draw host on canvas
+	 */
+
+	public Image hostImage;
+
+	/**
+	 * Array of colors used to draw paths: since they are randomly
+	 * chosen, every time we draw a path we check that the color
+	 * has not been used yet
+	 */
+
+	private ArrayList<Color> pathColors;
+
+	/**
+	 * Color used to draw the last path
+	 */
+
+	Color currentPathColor;
+
+	/**
+	 * A list of the links among motes, together with
+	 * the value of quality of these links
+	 */
+
+	public DLinksViewer linksViewer;
+
+	/**
+	 * The table model for a table (motesTable) with 
+	 * one row for each mote involved in the collection
+	 * tree protocol, whose icon is shown in the canvas
+	 */
+
+	private PathsTableModel tableModel;
+	private JTable motesTable;
+
+	/**
+	 * SENSORS DATA TABLE ->components for the table with data from sensors
 	 */
 
 	protected Button measuresButton;
@@ -142,81 +188,87 @@ implements ActionListener {
 	public int measuresTableWidth = 600;
 	public int measuresTableHeight = 600;
 
-	protected ArrayList motes = new ArrayList();
-	protected ArrayList links = new ArrayList();
-	protected DMoteModel selected = null;
-
-	protected HashMap moteIndex;
-	protected HashMap linkIndex;
+	protected HashMap motes;
+	protected HashMap links;
 	private MeasuresTableModel measuresTableModel;
 
-	/*
-	 * SENSORS DATA TABLE - END
+	/**
+	 * Coordinates for the shape representing the host
 	 */
 
-	private String[] toStringArray(Vector v) {
-		String[] array = new String[v.size()];
-		for (int i = 0; i < v.size(); i++) {
-			array[i] = (String) v.elementAt(i);
-		}
-		return array;
-	}
+	private int hostX=-1;
+	private int hostY=-1;
 
-	/*
-	 * DDOCUMENT CONSTRUCTOR: ->initialize all the graphic elements within
-	 * DDocument
+	/**
+	 * DDocument Constructor: ->initialize all its graphic elements
 	 */
 
-	public DDocument(int width, int height, Vector fieldVector,
-			Vector linkVector, String dir, String mote, String parseGetUrl,String
+	public DDocument(int width, int height, int rootMote,String directory, String moteImg, String hostImg,String parseGetURL,String parsePostURL,String
 			parseApplicationId, String parseRESTApiKey) {
 		super();
-		layers = new Vector();
 
 		/**
 		 * Directory where the script is executed (by the default) is the
 		 * current directory
 		 */
 
-		directory = dir;
-		
+		this.directory = directory;
+
 		/**
 		 * Path to the image to be used to represent motes on the canvas
 		 */
-		
-		moteImg = mote;
-		
+
+		this.moteImg = moteImg;
+
+		/**
+		 * Initialize the list with colors for paths
+		 */
+
+		this.pathColors=new ArrayList<Color>();
+
 		/**
 		 * URL of the HTTP GET Parse request
 		 */
+
+		this.parseGetURL=parseGetURL;
 		
-		parseRequestURL=parseGetUrl;
+		/**
+		 * URL of the HTTP POST Parse request
+		 */
 		
+		this.parsePostURL=parsePostURL;
+
 		/**
 		 * Value for X-Parse-Application-Id
 		 */
-		
+
 		this.parseApplicationId=parseApplicationId;
-		
+
 		/**
 		 * Value for X-Parse-REST-API-Key
 		 */
-		
+
 		this.parseRESTApiKey=parseRESTApiKey;
 
-		setOpaque(false);
+		/**
+		 * ID of root mote
+		 */
+
+		this.rootMote=rootMote;
 
 		/**
 		 * Set LayoutManager for DDocument to BorderLayout: arranges components
-		 * in one of five geographical locations NORTH , SOUTH ,EAST , WEST ,
-		 * and CENTER. The two parameters are respectively horizontal and
-		 * vertical gaps between components
+		 * in one out of five regions: NORTH , SOUTH ,EAST , WEST ,
+		 * and CENTER; each region can hold onl one Component object.
 		 */
 
-		setLayout(new BorderLayout(6, 6));
+		setLayout(new BorderLayout());
 
 		/**
-		 * TO BE CHECKED
+		 * The architecture of Swing is designed so that one may change
+		 * the "look and feel" (L&F) of his/her application's GUI:
+		 *  "Look" refers to the appearance of GUI widgets (more formally,
+		 *  JComponents) and "feel" refers to the way the widgets behave.
 		 */
 
 		try {
@@ -224,11 +276,51 @@ implements ActionListener {
 		} catch (Exception ignore) {
 		}
 
-		selectedFieldIndex = 0;
-		selectedLinkIndex = 0;
+		motes = new HashMap();
+		links = new HashMap();
 
 		/**
-		 * Create the canvas where motes and links will be displayed
+		 * Load images to represent motes on the canvas
+		 */
+
+		String imgName = directory + moteImg;
+		motesImage= Toolkit.getDefaultToolkit().getImage(imgName);
+
+		BufferedImage bimg;
+		try {
+
+			/**
+			 * Get dimensions of the motes image
+			 */
+
+			bimg = ImageIO.read(new File(imgName));
+			motesImageDimension=new Dimension(bimg.getWidth(),bimg.getHeight());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		/**
+		 * Load images to represent host on the canvas
+		 */
+
+		imgName = directory + hostImg;
+		hostImage = Toolkit.getDefaultToolkit().getImage(imgName);
+
+		try {
+
+			/**
+			 * Get dimensions of the host image
+			 */
+
+			bimg = ImageIO.read(new File(imgName));
+			hostImageDimension=new Dimension(bimg.getWidth(),bimg.getHeight());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		/**
+		 * CANVAS START
+		 * ->reate the canvas where motes and links will be displayed
 		 */
 
 		canvas = new DPanel(this);
@@ -252,6 +344,7 @@ implements ActionListener {
 		/**
 		 * Layout managers tries to set components to their preferred size
 		 */
+
 		canvas.setPreferredSize(new Dimension(width, height));
 
 		/**
@@ -262,54 +355,10 @@ implements ActionListener {
 		canvas.revalidate();
 
 		/**
-		 * Set minimumSize of the canvas
-		 */
-
-		canvas.setMinimumSize(new Dimension(width, height));
-
-		/**
-		 * Set actual size of the canvas
-		 */
-
-		canvas.setSize(new Dimension(width, height));
-
-		/**
-		 * Canvas is absolutely non-transaparent
-		 */
-
-		canvas.setOpaque(false);
-
-		/**
-		 * Set border of the canvas
-		 */
-
-		canvas.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
-
-		/**
 		 * Add the canvas at the center of DDocument.
 		 */
 
 		add(canvas, BorderLayout.CENTER);
-
-		/**
-		 * Get the list of motes and links
-		 */
-
-		sensed_motes = fieldVector;
-		sensed_links = linkVector;
-		moteIndex = new HashMap();
-		linkIndex = new HashMap();
-
-		/**
-		 * Load images to represent motes on the canvas
-		 */
-
-		String imgName = directory + moteImg;
-		try {
-			image = Toolkit.getDefaultToolkit().getImage(imgName);
-		} catch (Exception e) {
-			System.out.println(e);
-		}
 
 		/**
 		 * ComponentListener is the interface an object has to implement in
@@ -317,38 +366,38 @@ implements ActionListener {
 		 * inner class
 		 */
 
-		canvas.addComponentListener(new ComponentListener() {
-			public void componentResized(ComponentEvent e) {
-				navigator.redrawAllLayers();
-			}
+		/*canvas.addComponentListener(new ComponentListener() {
+		public void componentResized(ComponentEvent e) {
+			//linksViewer.redrawAllLayers();
+		}
 
-			public void componentHidden(ComponentEvent arg0) {
-				
-				/**
-				 * do nothing
-				 */
-			}
+		public void componentHidden(ComponentEvent arg0) {
+		}
 
-			public void componentMoved(ComponentEvent arg0) {
-				
-				/**
-				 * do nothing
-				 */
-			}
+		public void componentMoved(ComponentEvent arg0) {
+		}
 
-			public void componentShown(ComponentEvent arg0) {
-				
-				/**
-				 * do nothing
-				 */
-			}
-		});
+		public void componentShown(ComponentEvent arg0) {
+
+		}
+	});*/
 
 		/**
-		 * Create the control area, on the left of the window
+		 * CANVAS END
+		 */
+
+		/**
+		 * WEST AREA START:
+		 * ->create the panel for the west area of DDocument
 		 */
 
 		JPanel west = new JPanel();
+
+		/**
+		 * Set the border for west area
+		 */
+
+		west.setBorder(BorderFactory.createLineBorder(Color.GRAY,3));
 
 		/**
 		 * Set the double buffer for the control area
@@ -367,118 +416,203 @@ implements ActionListener {
 		 */
 
 		add(west, BorderLayout.WEST);
-		// currentColor = Color.GRAY;
 
 		/**
-		 * Create the lateral navigator
+		 * WEST AREA END
 		 */
 
-		navigator = new DNavigate(sensed_motes, sensed_links, this);
-		
 		/**
-		 * Add the navigator to DDocument
+		 * Create the lateral links-viewer; put it inside a JPanel
+		 * with a titled border
 		 */
-		
-		west.add(navigator);
-		
+
+		JPanel linksViewerPanel=new JPanel();
+		linksViewerPanel.setBorder(BorderFactory.createTitledBorder("Links Viewer"));
+
 		/**
-		 * In a vertical box, this is used to create an invisible fixed-height component
-		 * with the aim of create space between components: here we want to insert space
-		 * between navigator and the table with values from Parse
+		 * Create the links-viewer
 		 */
-		
-		west.add(Box.createVerticalStrut(50));
-		
+
+		linksViewer = new DLinksViewer(this);
+
 		/**
-		 * Create a new instance of the table showing measures from sensors stored on Parse
+		 * Add the links-viewer to the its panel and add it to the
+		 * west area
 		 */
-		
-		measuresTableModel = new MeasuresTableModel();
-		measuresTable = new JTable(measuresTableModel);
-		measuresTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-		
+
+		linksViewerPanel.add(linksViewer);
+		west.add(linksViewerPanel);
+
 		/**
-		 * Use default size for the table
+		 * RETRIEVE MEASURES AREA START:
+		 * -> add a panel containing an editable text field and a button:
+		 * the user sets a number in the text fields and then clicks the
+		 * button in order to retrieve the specified number of most
+		 * recently updated values on Parse
 		 */
-		
-		Dimension tableDimension = measuresTable
-				.getPreferredScrollableViewportSize();
-		
+
+		JPanel retrieveMeasuresPanel=new JPanel(true);
+
 		/**
-		 * Create a scrollable pane out of the table with measures
-		 * retrieved from Parse repository
+		 * Set margin
 		 */
-		
-		JScrollPane measuresScroller = new JScrollPane(measuresTable);
-		measuresScroller.setPreferredSize(new Dimension(tableDimension.width,
-				measuresTable.getRowHeight() * 3 + 1));
-		
+
+		retrieveMeasuresPanel.setBorder(BorderFactory.createEmptyBorder(20,10,20,10));
+
+		/**
+		 * We use the BoxLayout for this panel, but with left-to-right
+		 * alignment
+		 */
+
+		retrieveMeasuresPanel.setLayout(new BoxLayout(retrieveMeasuresPanel, BoxLayout.X_AXIS));
+
+		/**
+		 * Add a label specifying the functionality of the button
+		 */
+
+		JLabel retrieveMeasuresLabel=new JLabel("Click to retrieve last updated measures");
+		retrieveMeasuresPanel.add(retrieveMeasuresLabel);
+
+		/**
+		 * Add an editable text field for the user to enter the number
+		 * of measures he wants to retrieve from Parse
+		 */
+
+		JTextField numberOfMeasuresField=new JTextField("1");
+		numberOfMeasuresField.setPreferredSize(new Dimension(30,40));
+		numberOfMeasuresField.setMaximumSize(new Dimension(40,30));
+		numberOfMeasuresField.setHorizontalAlignment(JTextField.CENTER);
+		retrieveMeasuresPanel.add(numberOfMeasuresField);
+
+		/**
+		 * Add space between textfield and button
+		 */
+
+		retrieveMeasuresPanel.add(Box.createRigidArea(new Dimension(20,0)));
+
 		/**
 		 * Create the button that has to be clicked in order to retrieve measures
 		 * from Parse
 		 */
-		
-		measuresButton = new Button("Click to get the 3 last updated values");
-		measuresButton.addActionListener(measuresTableModel);
-		
+
+		measuresButton = new Button("Retrieve");
+
 		/**
 		 * Add the button to lateral control area of DDocument
 		 */
-		
-		west.add(measuresButton);
+
+		retrieveMeasuresPanel.add(measuresButton);
+
+		west.add(retrieveMeasuresPanel);
+
+		/**
+		 * MEASURES TABLE START:
+		 * ->create a new instance of the table showing measures from sensors stored on Parse.
+		 * First create its data model and then instantiate the table.
+		 */
+
+		measuresTableModel = new MeasuresTableModel();
+		measuresTable = new JTable(measuresTableModel);
 		
 		/**
-		 * Separate button from underlying table
+		 * This is necessary to have horizontal scrollbar
 		 */
 		
-		west.add(Box.createVerticalStrut(10));
-		
+		measuresTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+		/**
+		 * Insert table in a panel with titled border
+		 */
+
+		JPanel measuresTablePanel= new JPanel();
+		measuresTablePanel.setBorder(BorderFactory.createTitledBorder("Measures Table"));
+
+		/**
+		 * Make table sortable
+		 */
+
+		measuresTable.setAutoCreateRowSorter(true);
+
+		/**
+		 * Set the measuresTable as the listener for button events
+		 */
+
+		measuresButton.addActionListener(measuresTableModel);
+
+		/**
+		 * Set the measuresTable as the listener for text field events
+		 */
+
+		numberOfMeasuresField.getDocument().addDocumentListener(measuresTableModel);
+
+		/**
+		 * Create a scrollable pane out of the table with measures
+		 * retrieved from Parse repository
+		 */
+
+		JScrollPane measuresScroller = new JScrollPane(measuresTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		measuresTable.setFillsViewportHeight(true);
+		Dimension dimension=measuresTable.getPreferredSize();
+		measuresScroller.setPreferredSize(new Dimension(dimension.width,measuresTable.getRowHeight()*10));
+
 		/**
 		 * Add scrollable pane
 		 */
-		
-		west.add(measuresScroller);
-		
+
+		measuresTablePanel.add(measuresScroller);
+		west.add(measuresTablePanel);
+
+		/**
+		 * MOTES TABLE START
+		 * ->create a new instance of the table showing motes involved
+		 * into the data collection protocol.
+		 * First create its data model and then instantiate the table.
+		 */
+
+		/**
+		 * Create a title panel to host this table
+		 */
+
+		JPanel motesTablePanel=new JPanel();
+		motesTablePanel.setBorder(BorderFactory.createTitledBorder("Paths Table"));
+
 		/**
 		 * Create a new instance of the table model to represent
 		 * the set of motes in the WSN
 		 */
-		
-		tableModel = new DrawTableModel(sensed_motes);
-		
+
+		tableModel = new PathsTableModel();
+
 		/**
 		 * Create a new table out of the preceding table model
 		 */
-		
-		jTable = new JTable(tableModel);
-		// jTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-		
-		tableDimension = jTable.getPreferredScrollableViewportSize();
-		
+
+		motesTable = new JTable(tableModel);
+		motesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		motesTable.setFillsViewportHeight(true);
+
+		/**
+		 * Set a custom renderer for the color cells in order to
+		 * draw the background color
+		 */
+
+		motesTable.getColumnModel().getColumn(2).setCellRenderer(new CustomCellRenderer());
+		tableModel.addTableModelListener(this);
 		/**
 		 * Create a scrollable pane out of the table with motes
 		 */
-		
-		JScrollPane scroller = new JScrollPane(jTable);
-		scroller.setPreferredSize(new Dimension(tableDimension.width,
-				measuresTable.getRowHeight() * 3 + 1));
-		// scroller.setPreferredSize(new Dimension(350, 200));
-		/*
-		 * scroller.setMinimumSize(new Dimension(350, 200));
-		 * scroller.setSize(new Dimension(350, 200));
-		 */
-		
-		/**
-		 * Separate measures table from motes table
-		 */
-		
-		west.add(Box.createVerticalStrut(10));
-		
+
+		JScrollPane motesScroller = new JScrollPane(motesTable);
+		motesScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		dimension=motesTable.getPreferredSize();
+		motesScroller.setPreferredSize(new Dimension(dimension.width,motesTable.getRowHeight()*10));
+
 		/**
 		 * Add motes table
 		 */
-		
-		west.add(scroller);
+
+		motesTablePanel.add(motesScroller);
+		west.add(motesTablePanel);
 
 		/**
 		 * Enable events defined by the mask given as a parameter
@@ -490,14 +624,11 @@ implements ActionListener {
 		 * to DDocument (method "processEvent" even though it is not
 		 * registered as a listener.
 		 */
-		
+
 		enableEvents(LinkSetEvent.EVENT_ID);
 		enableEvents(ValueSetEvent.EVENT_ID);
+		enableEvents(NewMoteEvent.EVENT_ID);
 	}
-
-	/*
-	 * DDOCUMENT CONSTRUCTOR - END
-	 */
 
 	public void actionPerformed(ActionEvent e) {
 	}
@@ -515,87 +646,398 @@ implements ActionListener {
 
 	Random rand = new Random();
 
-	private DMoteModel createNewMote(int moteID) {
-		DMoteModel m = new DMoteModel(moteID, rand, this);
-		System.out.println("Adding mote " + moteID);
-		motes.add(m);
-		moteIndex.put(new Integer(moteID), m);
-		tableModel.add(m);
-
-		navigator.addMote(m);
+	private DMoteModel createNewMote(int moteID,boolean isProducer) {
+		DMoteModel m = new DMoteModel(moteID, rand, this,isProducer);
+		motes.put(new Integer(moteID), m);
+		//tableModel.add(m);
 		return m;
 	}
 
+	private void drawMote(int moteID,Graphics g){
+		DShape m = new DMote(((DMoteModel)motes.get(moteID)), this);
+		m.paintShape(g);
+	}
+
+	/**
+	 * Draw the link corresponding to the given link model using the
+	 * given color and adding the given index
+	 * @param model
+	 * @param g
+	 * @param color
+	 */
+
+	private void drawLink(DLinkModel model,Graphics g,Color color,int index){
+
+		/**
+		 * Create a new shape to draw the link on the canvas
+		 */
+
+		DLink lnk = new DLink(model, this,color,index);
+
+		/**
+		 * Draw the new link
+		 */
+
+		lnk.paintShape(g);
+
+	}
+
+	/**
+	 * Create a new event indicating that the value of a field of messages
+	 * that has changed, then post the event in the queue of events of the
+	 * applet (from where they will be dispatched to proper handler causing
+	 * some components of the GUI to be modified)
+	 * @param moteID
+	 * @param name
+	 * @param value
+	 */
+
 	public void setMoteValue(int moteID, String name, int value) {
+
+		/**
+		 * Create a new event, specifying DDocument as the container
+		 * that will be notified of the event as it will be processed
+		 * by AWT framework
+		 */
+
 		ValueSetEvent vsv = new ValueSetEvent(this, moteID, name, value);
 
 		/**
-		 * T
+		 * Get the EventQueue associated to the current applet
 		 */
+
 		EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
+
+		/**
+		 * Post event to the queue
+		 */
+
 		eq.postEvent(vsv);
 	}
 
-	private DLinkModel createNewLink(DMoteModel start, DMoteModel end) {
-		DLinkModel dl = new DLinkModel(start, end, rand, this);
-		links.add(dl);
-		linkIndex.put(start.getId() + " " + end.getId(), dl);
-		return dl;
-	}
+	/**
+	 * Create a new event indicating that a new mote has been detected,
+	 * then post the event in the queue of events of the applet 
+	 * (from where they will be dispatched to proper handler causing
+	 * some components of the GUI to be modified) 
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 
-	public void setLinkValue(int startMote, int endMote, String name, int value) {
-		LinkSetEvent lsv = new LinkSetEvent(this, name, value, startMote,
-				endMote);
+	public void setNewMote(int moteID){
+
+		/**
+		 * Create a new event, specifying DDocument as the container
+		 * that will be notified of the event as it will be processed
+		 * by AWT framework
+		 */
+
+		NewMoteEvent nme=new NewMoteEvent(this, moteID);
+
+		/**
+		 * Get the EventQueue associated to the current applet
+		 */
+
 		EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
-		eq.postEvent(lsv);
+
+		/**
+		 * Post event to the queue
+		 */
+
+		eq.postEvent(nme);
 	}
 
-	protected void processEvent(AWTEvent event) {
-		System.err.println(event.getSource().toString() + "->"
-				+ event.paramString());
-		if (event instanceof ValueSetEvent) {
-			ValueSetEvent vsv = (ValueSetEvent) event;
-			String name = vsv.name();
-			int moteID = vsv.moteId();
-			int value = vsv.value();
-			DMoteModel m = (DMoteModel) moteIndex.get(new Integer(moteID));
-			if (m == null) {
-				m = createNewMote(moteID);
+	private DLinkModel createNewLink(DMoteModel start, DMoteModel end) {
+		DLinkModel linkModel = new DLinkModel(start, end,this);
+		links.put(start.getId()+"->"+end.getId(), linkModel);
+		return linkModel;
+	}
+
+	public void setLinkValue(int linkQuality,int startMote, int endMote,boolean isProducer) {
+		LinkSetEvent linkSetEvent = new LinkSetEvent(this,linkQuality,startMote,
+				endMote,isProducer);
+		EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
+		eq.postEvent(linkSetEvent);
+	}
+
+	/**
+	 * Add a new path to the Paths Table (if not already there)
+	 * @param path
+	 */
+
+	public void setNewPath(int[] path){
+
+		/**
+		 * Check if already in the table
+		 */
+
+		if(tableModel.containsPath(path)){
+
+			/**
+			 * In this case we only have to update the path
+			 */
+
+			tableModel.updatePath(path);
+		}
+		else{
+
+			/**
+			 * Randomly assign a color to the new path
+			 * (always choose new color)
+			 */
+
+			float r = rand.nextFloat();
+			float g = rand.nextFloat();
+			float b = rand.nextFloat();
+			Color backgroundColor=new Color(r,g,b);
+			while(pathColors.contains(backgroundColor)){
+				r = rand.nextFloat();
+				g = rand.nextFloat();
+				b = rand.nextFloat();
+				backgroundColor=new Color(r,g,b);
 			}
-			m.setMoteValue(name, value);
-			navigator.redrawAllLayers();
-		} else if (event instanceof LinkSetEvent) {
-			LinkSetEvent lsv = (LinkSetEvent) event;
-			String name = lsv.name();
-			int startMote = lsv.start();
-			int endMote = lsv.end();
-			int value = lsv.value();
-			DMoteModel m = (DMoteModel) moteIndex.get(new Integer(startMote));
-			if (m == null) {
-				m = createNewMote(startMote);
-			}
-			DMoteModel m2 = (DMoteModel) moteIndex.get(new Integer(endMote));
-			if (m2 == null) {
-				m2 = createNewMote(endMote);
-			}
-			DLinkModel dl = (DLinkModel) linkIndex.get(startMote + " "
-					+ endMote);
-			if (dl == null) {
-				// System.out.println("Does not contain key <" + startMote + " "
-				// + endMote + ">");
-				dl = createNewLink(m, m2);
-			}
-			dl.setLinkValue(name, value);
-			navigator.redrawAllLayers();
-		} else {
-			super.processEvent(event);
+			pathColors.add(backgroundColor);
+			currentPathColor=backgroundColor;
+			tableModel.add(path,currentPathColor);
 		}
 	}
 
+	/**
+	 * Event handler for AWTEvents whose target is DDocument
+	 */
+
+	protected void processEvent(AWTEvent event) {
+
+		/**
+		 * We only deal with new links set; we don't care
+		 * about other events
+		 */
+
+		if (event instanceof LinkSetEvent) {
+
+			/**
+			 * Parse event
+			 */
+
+			LinkSetEvent linkSetEvent = (LinkSetEvent) event;
+			int linkQuality = linkSetEvent.linkQuality();
+			int startMote = linkSetEvent.startMote();
+			int endMote = linkSetEvent.endMote();
+			boolean isProducer=linkSetEvent.isProducer;
+
+			/**
+			 * Check if the two motes composing the link have been already sensed:
+			 * if not, draw one DMote shape each to represent them
+			 */
+
+			DMoteModel m1 = (DMoteModel) motes.get(new Integer(startMote));
+			if (m1==null) {
+				m1 = createNewMote(startMote,isProducer);
+			}
+
+			DMoteModel m2 = (DMoteModel) motes.get(new Integer(endMote));
+			if (m2 == null) {
+
+				/**
+				 * Endpoint of a link can't be a producer because we
+				 * consider directed link, so second parameter has to
+				 * be false
+				 */
+
+				m2 = createNewMote(endMote,false);
+
+				/**
+				 * When the root mote is created, also set coordinates for
+				 * the shape representing the host to which it's connected;
+				 * this has to be done once and we try to draw the host close
+				 * to the root mote
+				 */
+
+				if((endMote==rootMote)&&(hostX==-1)){
+
+					boolean overlapping=true;
+					while(overlapping){
+
+						/**
+						 * X coordinate w.r.t. to the container; we don't want the mote to have
+						 * its center exactly on the border, so adjust x with the width of the
+						 * image used to represent the mote
+						 */
+
+						hostX = (int) m2.getLocX()+rand.nextInt((int)motesImageDimension.getWidth()+(int)hostImageDimension.getWidth()+50);
+
+						boolean foundX=true;
+
+						/**
+						 * Check that the x coordinate is not beyond the limit of the canvas
+						 */
+
+						if((int)(hostX+hostImageDimension.getWidth())>=canvas.getWidth()){
+							continue;
+						}
+						Iterator moteIterator=motes.entrySet().iterator();
+						while(moteIterator.hasNext()){
+							DMoteModel current=((DMoteModel)((Map.Entry)moteIterator.next()).getValue());
+							if((current.x-(int) motesImageDimension.getWidth())<=hostX && hostX<=(current.x+(int) motesImageDimension.getWidth())){
+								foundX=false;
+								break;
+							}
+						}
+						/**
+						 * Y coordinate w.r.t. to the container; we don't want the mote to have
+						 * its center exactly on the border, so adjust y with the height of the
+						 * image used to represent the mote
+						 */
+
+						boolean foundY=true;
+						hostY = (int) m2.getLocY()+rand.nextInt((int)motesImageDimension.getHeight()+(int)hostImageDimension.getHeight()+50);
+
+						/**
+						 * Check that the y coordinate is not beyond the limit of the canvas
+						 */
+
+						if((int)(hostY+hostImageDimension.getHeight())>=canvas.getHeight()){
+							continue;
+						}
+						moteIterator=motes.entrySet().iterator();
+						while(moteIterator.hasNext()){
+							DMoteModel current=((DMoteModel)((Map.Entry)moteIterator.next()).getValue());
+							if((current.y-(int) motesImageDimension.getHeight())<=hostY && hostY<=(current.y+(int) motesImageDimension.getHeight())){
+								foundY=false;
+								break;
+							}
+						}
+						if(!foundY&&!foundX)
+							continue;
+						else {
+							overlapping=false;
+						}
+					}
+				}
+			}
+
+			/**
+			 * Check if this link between the motes has been already sensed:
+			 * if note, draw one DLink shape to represent it
+			 */
+
+			DLinkModel dl = (DLinkModel) links.get(startMote + "->"
+					+ endMote);
+			if (dl == null) {
+				dl = createNewLink(m1, m2);
+			}
+
+			/**
+			 * ID of the link is START_MOTE->END_MOTE
+			 */
+
+			String link=new Integer(startMote).toString()+"->"+new Integer(endMote).toString();
+
+			/**
+			 * Update the value of the link in the corresponding row of the
+			 * links table and in the links viewer
+			 */
+
+			dl.setLinkValue(link,linkQuality);
+			linksViewer.updateLink(dl);
+
+			/**
+			 * Since the link quality is BIDIRECTIONAL (it's computed 
+			 * from the the in-bound and out-bound qualitites of both 
+			 * motes in the link), the value has to updated not only 
+			 * for link A->B, but also for link B->A if a message has
+			 * already crossed the link in this direction too
+			 */
+
+			dl = (DLinkModel) links.get(endMote + "->"
+					+ startMote);
+			if (dl != null) {
+				dl.setLinkValue(new Integer(endMote).toString()+"->"+new Integer(startMote).toString(),linkQuality);
+				linksViewer.updateLink(dl);
+			}
+
+			/**
+			 * Finally redraw the whole canvas with motes
+			 * and links
+			 */
+
+			redrawCanvas();
+		}
+	}
+
+	/**
+	 * This method draws all the motes and only the links belonging
+	 * to the path currently selected in the Paths Model
+	 */
+
+	void redrawCanvas(){
+
+		/**
+		 * A BufferedImage is a subclass of Image with accessible buffer of image data.
+		 * Below constructor takes the following parameters:
+		 * 1 - width of the created image
+		 * 2 - height of the created image
+		 * 3 - type of the created image; "TYPE_INT_ARGB" represents an image with 8-bit RGBA color
+		 * 	   components packed into integer pixels
+		 */
+
+		Image offscreen = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
+
+		/**
+		 * Graphics objects represent drawing areas (a.k.a. graphics context): contains methods to
+		 * draw in this area. It's called "context" because it includes information about the drawing
+		 * area. In particular BufferedImage returns a Graphics2D object, which can be
+		 * used to draw either shapes or texts or images
+		 */
+
+		Graphics g = offscreen.getGraphics();
+		Graphics2D g2d = (Graphics2D) g;
+
+		/**
+		 * Clears the specified rectangle filling it with the background color of the
+		 * current drawing surface
+		 */
+
+		g2d.clearRect(0, 0,canvas.getWidth(), canvas.getHeight());
+
+		/**
+		 * Fills the specified rectangle using context's current color
+		 */
+
+		g2d.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+		/**
+		 * Draw all motes
+		 */
+
+		Iterator motesIterator=motes.keySet().iterator();
+		while(motesIterator.hasNext()){
+			drawMote(((Integer)motesIterator.next()).intValue(), g2d);
+		}
+
+		/**
+		 * Get the color of the path to draw
+		 */
+
+		Color pathColor=(Color)(tableModel.getValueAt(tableModel.selected, 2));
+
+		/**
+		 * Draw a link only if belonging to the current selected path
+		 */
+
+		Iterator linksIterator=links.entrySet().iterator();
+		while(linksIterator.hasNext()){
+			java.util.Map.Entry entry=(java.util.Map.Entry)linksIterator.next();
+			if(tableModel.belongsToPath((DLinkModel)(entry.getValue()))!=-1)
+				drawLink((DLinkModel)(entry.getValue()), g2d,pathColor,tableModel.belongsToPath((DLinkModel)(entry.getValue()))+1);
+		}
+
+		canvas.getGraphics().drawImage(offscreen, 0, 0, this);
+	}
+
 	public static void usage() {
-		// REMOVE
-		// System.err.println("usage: tos-mviz [-comm source] [-dir image_dir] message_type [message_type ...]");
-		System.err.println("usage: class-monitor [-comm source]");
+		System.out.println("usage: class-monitor [-comm source]");
 	}
 
 	/**
@@ -603,7 +1045,7 @@ implements ActionListener {
 	 */
 
 	public static void main(String[] args) throws IOException,
-			FileNotFoundException, ClassNotFoundException {
+	FileNotFoundException, ClassNotFoundException {
 
 		/**
 		 * set a top-level window (JFrame) according to the Swing framework
@@ -611,27 +1053,7 @@ implements ActionListener {
 
 		JFrame frame = new JFrame("Class Monitoring GUI");
 
-		// REMOVE Vector packetVector = new Vector();
-
-		// REMOVE String source = null;
-
-		// REMOVE String dir = ".";
-		// REMOVE String moteImg = "/mote.gif";
-
-		/*
-		 * REMOVE if (args.length > 0) { for (int i = 0; i < args.length; i++) {
-		 * if (args[i].equals("-comm")) { source = args[++i]; break; } else {
-		 * usage(); System.exit(1); } } }
-		 */
-
 		try {
-
-			/**
-			 * set a default file to output errors - TO BE MODIFIED
-			 */
-
-			PrintStream err = new PrintStream("/home/user/Desktop/err");
-			System.setErr(err);
 
 			/**
 			 * input stream to read the configuration file; if it is not found
@@ -651,18 +1073,51 @@ implements ActionListener {
 			properties.load(propertiesInputStream);
 
 			/**
-			 * get the path to the folder containing the icons to be used to
+			 * Get the ID of the root node
+			 * NOTE: it has to be the same as in the header file "Acceleration.h"
+			 */
+
+			String  rootMote=properties.getProperty("rootMote");
+
+			/**
+			 * Get the path to the folder containing the icons to be used to
 			 * draw the motes
 			 */
 
 			String dir = properties.getProperty("imagesDir");
 
 			/**
-			 * get the name of the icon to be used to draw the motes on the canvas
+			 * Get the name of the icon to be used to draw the motes on the canvas
 			 */
-			
+
 			String moteImage = properties.getProperty("moteImage");
-			
+
+			/**
+			 * Get the name of the icon to be used to draw the motes on the canvas
+			 */
+
+			String hostImage = properties.getProperty("hostImage");
+
+			/**
+			 * If motes image does not exist, exit
+			 */
+
+			File f = new File(dir+moteImage);
+			if(!f.exists() || f.isDirectory()) {
+				System.out.println("ERROR: could not find mote image file "+dir+moteImage);
+				return;
+			}
+
+			/**
+			 * If host image does not exist, exit
+			 */
+
+			f = new File(dir+hostImage);
+			if(!f.exists() || f.isDirectory()) {
+				System.out.println("ERROR: could not find host image file "+dir+hostImage);
+				return;
+			}
+
 			/**
 			 * Data from sensors, after having being uploaded on Parse
 			 * repository can be retrieved through HTTP GET requests.
@@ -673,54 +1128,38 @@ implements ActionListener {
 			 * Values for these headers are written in the java file
 			 * property
 			 */
-			
+
 			String parseApplicationId=properties.getProperty("parseApplicationId");
 			String parseRESTApiKey=properties.getProperty("parseRESTApiKey");
-			
+
 			/**
 			 * Get the URL of the HTTP GET request to Parse repository
 			 */
-			
+
 			String parseGetUrl=properties.getProperty("parseGetUrl");
 			
 			/**
-			 * Vector whose elements are java classes representing format of packets
-			 * allowed
-			 * TO BE MODIFIED - ONLY ONE FORMAT
+			 * Get the URL of the HTTP POST request to Parse repository
 			 */
-			
-			Vector packetVector = new Vector();
-			packetVector.add(messagesJavaClass);
-			
-			/**
-			 * The data model, namely the set of information provided by packets
-			 */
-			
-			DataModel model = new DataModel(packetVector);
-			
-			/**
-			 * Instantiate DDocument, which is the main GUI of the application.
-			 * Constructor requires the set of fields and links from data model,
-			 * because they are used to initialized the "navigator" (a control area)
-			 * within DDocument
-			 */
-			
+
+			String parsePostUrl=properties.getProperty("parsePostUrl");
+
 			DDocument doc = new DDocument(Integer.parseInt(properties
 					.getProperty("height")), Integer.parseInt(properties
-					.getProperty("width")), model.fields(), model.links(), dir,
-					moteImage,parseGetUrl,parseApplicationId,parseRESTApiKey);
-			
+							.getProperty("width")),Integer.parseInt(rootMote), dir,
+							moteImage,hostImage,parseGetUrl,parsePostUrl,parseApplicationId,parseRESTApiKey);
+
 			/**
 			 * JWindows and JFrames consist of a number of separated overlapping "panes": among
-			 * those, the contentPane is a Container that covers visible area
+			 * these, the contentPane is a Container that covers visible area
 			 */
-			
+
 			frame.setContentPane(doc);
-			
+
 			/**
 			 * Default close operation
 			 */
-			
+
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 			/**
@@ -737,11 +1176,10 @@ implements ActionListener {
 			frame.setVisible(true);
 
 			/**
-			 * instantiate a new object to deal with messages from the specified
-			 * source
+			 * instantiate a new object to deal with messages coming from motes
 			 */
 
-			MessageInput input = new MessageInput(packetVector, null, doc);
+			MessageInput input = new MessageInput(null, doc);
 
 			/**
 			 * start this object
@@ -750,114 +1188,298 @@ implements ActionListener {
 			input.start();
 		} catch (FileNotFoundException notFoundEx) {
 			System.out
-					.println("ERROR: could not find the file properties \"config.properties\"");
+			.println("ERROR: could not find the file properties \"config.properties\"");
 			System.exit(1);
 		} catch (SecurityException secEx) {
 			System.out
-					.println("ERROR: denied access to the file properties \"config.properties\"");
+			.println("ERROR: denied access to the file properties \"config.properties\"");
 			System.exit(1);
 		}
 	}
 
-	private void repaintAllMotes() {
-		Iterator it = motes.iterator();
-		while (it.hasNext()) {
-			((DMoteModel) it.next()).requestRepaint();
-		}
-	}
-
-	private void repaintAllLinks() {
-		Iterator it = links.iterator();
-		while (it.hasNext()) {
-			((DLink) it.next()).repaint();
-		}
-	}
-
-	// #########################################################################//
-	
 	/**
-	 * The table model for the table holding values from motes within
-	 * DDocument; it extends the swing abstract class AbstractTableModel
-	 * with the three methods getRowCount,getColumnCount and getValueAt
-	 * @author user
+	 * Here's the model for the "PathsTable", namely a table with one
+	 * row for each path from one "producer mote" (a mote with embedded 
+	 * accelerometer) to the the "root mote" (the mote connected to the
+	 * host running the applet)
 	 *
 	 */
 
-	private class DrawTableModel extends AbstractTableModel implements
-			DMoteModelListener {
+	private class PathsTableModel extends AbstractTableModel implements
+	DMoteModelListener {
 
-		private Vector fields;
-
-		public DrawTableModel(Vector fields) {
-			this.fields = fields;
-		}
-
-		// -----------------------------o
-		public String getColumnName(int col) {
-			switch (col) {
-			case 0:
-				return "X";
-			case 1:
-				return "Y";
-			default:
-				return (String) fields.elementAt(col - 2);
-			}
-		}
-
-		// -----------------------------o
-		public int getColumnCount() {
-			return fields.size() + 2;
-		}
-
-		// -----------------------------o
-		public int getRowCount() {
-			return DDocument.this.motes.size();
-		}
-
-		// -----------------------------o
-		
 		/**
-		 * Each row in the table corresponds to a mote in DDocument (in the
-		 * array "motes"); there is a number of columns equal to the number
-		 * of fields in the messages sent by motes (+ 2, namely X and Y columns)
+		 * Actual data of the the table model are represented by a matrix with a
+		 * number of rows and two columns. The columns are:
+		 * - Origin: ID of the producer mote
+		 * - Hopscount: number of motes between the the producer and the root
+		 * - Timestamp of the last message sent by the producer mote (this can
+		 * 	 be useful to check whether the mote is up or if it's down)
 		 */
-		
+
+		ArrayList<Object[]>data = new ArrayList<Object[]>();
+
+		/**
+		 * Fixed headers of the columns. Beside the two above columns containing
+		 * data, there's a column dedicated to the "color" of the path
+		 * on the canvas and one checkbox to be clicked in order to draw the
+		 * path
+		 */
+
+		String[] columnNames = new String[] { "Origin", "Hopscount","Last message","Color","Selected"};
+
+		/**
+		 * Index of the row corresponding to currently selected row
+		 */
+
+		int selected=0;
+
+		public PathsTableModel() {
+		}
+
+		public String getColumnName(int col) {
+			return columnNames[col];
+		}
+
+		public int getColumnCount() {
+			return 4;
+		}
+
+		public int getRowCount() {
+			return data.size();
+		}
+
 		public Object getValueAt(int row, int col) {
-			DMoteModel model = (DMoteModel) DDocument.this.motes.get(row);
+
+			/**
+			 * In the first column only show the origin
+			 * of the path (producer mote)
+			 */
+
 			switch (col) {
 			case 0:
-				return "" + (int) model.getLocX();
-			case 1:
-				return "" + (int) model.getLocY();
+				return ((List<Integer>)data.get(row)[col]).get(0);
 			default:
-				return ("" + (int) model.getValue(col - 2));
+				return data.get(row)[col];
 			}
 		}
 
-		// -----------------------------o
-		public void shapeChanged(DMoteModel changed, int type) {
+		@Override
+		public Class getColumnClass(int column) {
+			switch (column) {
+			case 0:
+				return Integer.class;
+			case 1:
+				return Integer.class;
+			case 2:
+				return Color.class;
+			case 3:
+				return Boolean.class;
+			default:
+				return String.class;
+			}
+		}
+
+		/**
+		 * Make last column selectable by the user
+		 */
+
+		@Override
+		public boolean isCellEditable(int row, int col) {
+			switch (col) {
+			case 3:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		/**
+		 * When the checkbox is selected, draw the corresponding path
+		 * and deselect the other because we want ONLY ONE PATH SHOWN
+		 * AT A TIME 
+		 */
+
+		@Override
+		public void setValueAt(Object aValue, int rowIndex, int columnIndex){
+
+			switch (columnIndex) {
+			case 3:
+
+				/**
+				 * Set the "selected" field to the selected row
+				 */
+
+				selected=rowIndex;
+				data.get(rowIndex)[3]=Boolean.TRUE;
+
+				/**
+				 * Reset all the other checkboxes
+				 */
+
+				for(int i=0;i<getRowCount();i++){
+					if(i!=rowIndex)
+						data.get(i)[3]=Boolean.FALSE;
+				}
+
+				/**
+				 * Notify changes
+				 */
+
+				fireTableCellUpdated(rowIndex, columnIndex);
+				fireTableRowsUpdated(0, getRowCount()-1);
+				break;
+			default:
+				break;
+			}
+		}
+
+		/**
+		 * Method to check if a link belongs to the currently
+		 * selected path. It returns the index of the link
+		 * within the path if present, -1 otherwise
+		 */
+
+		public int belongsToPath(DLinkModel linkModel){
+
+			/**
+			 * If the start mote (we consider only directed link)
+			 * is in the list of motes of the selected path, and
+			 * the next element in the list is the other extreme
+			 * of the link, then the link belongs to the path
+			 */
+
+			ArrayList<Integer> pathArrayList=(ArrayList<Integer>)data.get(selected)[0];
+			int index=pathArrayList.indexOf(new Integer(linkModel.m1.getId()));
+			if((index!=-1)&&(pathArrayList.get(index+1)==linkModel.m2.getId())){
+				return index;
+			}
+			return -1;
+		}
+
+		/**
+		 * Method to check if a path is already stored in the
+		 * table
+		 */
+
+		public boolean containsPath(int[] path){
+
+			int origin=path[0];
+
+			/**
+			 * Go through all the paths and stop if one whose origin
+			 * coincides with the one of the provided path is found
+			 */
+
+			Iterator<Object[]> rowsIterator=data.iterator();
+			while(rowsIterator.hasNext()){
+				if(((List<Integer>)(rowsIterator.next()[0])).get(0)==origin)
+					return true;
+			}
+			return false;
+		}
+
+		/**
+		 * Update a path from producer to root
+		 * @param path
+		 */
+
+		public void updatePath(int[] path){
+
+			int producer=path[0];
+
+			/**
+			 * Get the path corresponding to the given origin and
+			 * update it
+			 */
+
+			Iterator<Object[]> rowsIterator=data.iterator();
+			int rowIndex=0;
+			while(rowsIterator.hasNext()){
+
+				Object[] rowValue=rowsIterator.next();
+				if(((List<Integer>)(rowValue[0])).get(0)==producer){
+
+					/**
+					 * Create the updated list of motes along the
+					 * path from the given parameter
+					 */
+
+					ArrayList<Integer> pathList=new ArrayList();
+					for(int i=0;i<path.length;i++){
+						pathList.add(new Integer(path[i]));
+					}
+
+					/**
+					 * Add the root mote
+					 */
+
+					pathList.add(rootMote);
+					rowValue[0]=pathList;
+					rowValue[1]=path.length;
+					fireTableRowsUpdated(rowIndex, rowIndex);
+					return;
+				}
+				++rowIndex;
+			}
+		}
+
+		public void shapeChanged(DMoteModel changed) {
+
+			/**
+			 * Find the row in the table corresponding to the given
+			 * mote model
+			 */
+
 			int row = findModel(changed);
 			if (row != -1) {
+
+				/**
+				 * Notifies all listeners that rows in the range [firstRow, lastRow],
+				 * inclusive, have been updated; here only the row corresponding to
+				 * the mote has to be updated
+				 */
+
 				fireTableRowsUpdated(row, row);
 			}
 			fireTableDataChanged();
 		}
 
-		// -----------------------------o
-		
 		/**
-		 * Add a mote to the table of values from sensors
-		 * @param model
+		 * Add a new row to the PathsTable
 		 */
-		
-		public void add(DMoteModel model) {
-			model.addListener(this);
-			int last = DDocument.this.motes.size() - 1;
-			fireTableRowsInserted(last, last);
+
+		public void add(int[] path,Color background) {
+			//model.addListener(this);
+
+			/**
+			 * Turn the int array into a list (it's easier
+			 * to check if the path contains one link)
+			 */
+
+			ArrayList<Integer> pathList=new ArrayList();
+			for(int i=0;i<path.length;i++){
+				pathList.add(new Integer(path[i]));
+			}
+
+			/**
+			 * Add the root as last element
+			 */
+
+			pathList.add(rootMote);
+
+			/**
+			 * If the table is empty, show the new path,
+			 * else keep showing the last selected path
+			 */
+
+			if(getRowCount()==0)
+				data.add(new Object[]{pathList,path.length,background,true});
+			else
+				data.add(new Object[]{pathList,path.length,background,false});
 			fireTableDataChanged();
 		}
 
-		// -----------------------------o
 		public void remove(DMoteModel model) {
 			int row = findModel(model);
 			if (row != -1) {
@@ -872,12 +1494,14 @@ implements ActionListener {
 		}
 
 		// -----------------------------o
+
+		/**
+		 * Get the row in the motes table corresponding to
+		 * the given mote model
+		 */
+
 		private int findModel(DMoteModel changed) {
 			for (int i = 0; i < DDocument.this.motes.size(); i++) {
-				if ((DMoteModel) DDocument.this.motes.get(i) == changed) {
-					System.out.println((DMoteModel) DDocument.this.motes.get(i)
-							+ " has changed!");
-				}
 				return i;
 			}
 			return -1;
@@ -886,32 +1510,49 @@ implements ActionListener {
 	}
 
 	/**
-	 * In order to easily create a TableModel, the easiest solution is
+	 * In order to create a TableModel, the easiest solution is
 	 * subclassing the abstract class AbstractTableModel and overriding
 	 * any behavior we want to change. By default cells are not
 	 * editable.
 	 * @author user
 	 *
 	 */
+
 	private class MeasuresTableModel extends AbstractTableModel implements
-			ActionListener {
-		
+	ActionListener,DocumentListener {
+
 		/**
-		 * Actual data of the the table model are represented by a matrix of
-		 * 3 rows and four columns. The columns are:
-		 * 1 - X Acc: value of the acceleration along x-axis
-		 * 1 - Y Acc: value of the acceleration along y-axis
-		 * 1 - Z Acc: value of the acceleration along z-axis
+		 * Actual data of the the table model are represented by a matrix with a
+		 * number of rows and five columns. The columns are:
+		 * - X Acc: value of the acceleration along x-axis
+		 * - Y Acc: value of the acceleration along y-axis
+		 * - Z Acc: value of the acceleration along z-axis
+		 * - MoteID: ID of the mote where the values were collected by the accelerometer
+		 * - updatedA: timestamp of the moment when data were uploaded on Parse
+		 * 
+		 * We use a list of arrays of Object to represent data, because we want to let
+		 * the user get any number of data uploaded on Parse; each array of Object 
+		 * represents a row of the MeasureTable
 		 */
-		
-		Object data[][] = new Object[3][4];
-		
+
+		ArrayList<Object[]>data = new ArrayList<Object[]>();
+
 		/**
 		 * Fixed headers of the columns
 		 */
-		String[] headings = new String[] { "X Acc", "Y Acc", "Z Acc",
-				"updatedAt" };
-		
+
+		String[] columnNames = new String[] { "X Acc", "Y Acc", "Z Acc",
+				"updatedAt","Origin" };
+
+		/**
+		 * The number of last updated measures to retrieve from Parse on
+		 * next user request; by default it's 1, but can be changes by
+		 * the user editing the value in the dedicated text field (see
+		 * above)
+		 */
+
+		String limit="1";
+
 		/**
 		 * Constructor for our custom table: simply initialize all rows
 		 * with null values the X,Y and Z columns and with empty string
@@ -920,31 +1561,18 @@ implements ActionListener {
 
 		public MeasuresTableModel() {
 			super();
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < 3; j++) {
-					data[i][j] = new Integer(0);
-				}
-				data[i][3] = "";
-			}
-			
-			/**
-			 * Get the last three updated values from Parse
-			 * repository
-			 */
-			
-			// retrieveMeasures();
 		}
-		
+
 		/**
 		 * An abstract method that must be implemented when
 		 * class AbstractTableModel is subclassed; this method
 		 * returns the number of rows in the table
 		 */
-		
+
 		public int getRowCount() {
-			return data.length;
+			return data.size();
 		}
-		
+
 		/**
 		 * An abstract method that must be implemented when
 		 * class AbstractTableModel is subclassed; this method
@@ -952,31 +1580,45 @@ implements ActionListener {
 		 */
 
 		public int getColumnCount() {
-			return data[0].length;
+			return columnNames.length;
 		}
-		
+
 		/**
 		 * An abstract method that must be implemented when
 		 * class AbstractTableModel is subclassed; this method
 		 * returns the element of the table corresponding to
 		 * given row and column
 		 */
-		
+
 		public Object getValueAt(int row, int column) {
-			return data[row][column];
+			return data.get(row)[column];
 		}
-		
+
 		/**
 		 * This method is needed when AbstractTableModel is subclassed,
 		 * because it gives name to headers of columns
 		 */
 
 		public String getColumnName(int column) {
-			return headings[column];
+			return columnNames[column];
 		}
-		
+
 		/**
-		 * Get last three updated values from sensors from Parse repository.
+		 * Override this method in order to properly implement sorting;
+		 * when a column is sorted, sorting has to be consistent with 
+		 * the type of values inside the column
+		 */
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			if (data.isEmpty()) {
+				return Object.class;
+			}
+			return getValueAt(0, columnIndex).getClass();
+		}
+
+		/**
+		 * Get last updated values from sensors from Parse repository.
 		 * Requests to Parse are simply HTTP GET request; response is given
 		 * as JSON Object. URL of the request to Parse is read from Java
 		 * property file. Here we use an HTTP Client from Apache to make
@@ -985,80 +1627,79 @@ implements ActionListener {
 
 		void retrieveMeasures() {
 			try {
-				
+
 				/**
 				 * Create an instance of HTTP client
 				 */
-				
+
 				CloseableHttpClient httpclient = HttpClients.createDefault();
-				
+
 				/**
 				 * Create an instance of an HTTP GET request; URL is taken from
-				 * property file
+				 * property file and the actual number of values to retrieve is
+				 * added
 				 */
-				
+
 				HttpGet httpGet = new HttpGet(
-						parseRequestURL);
-				
+						parseGetURL+limit);
+
 				/**
 				 * Add mandatory headers to make requests to Parse repository
 				 */
-				
+
 				httpGet.addHeader(parseApplicationIdHeader,
 						parseApplicationId);
 				httpGet.addHeader(parseRESTApiKeyHeader,
 						parseRESTApiKey);
-				
+
 				/**
 				 * Execute the HTTP GET request and get an HTTP Response
 				 */
-				
+
 				CloseableHttpResponse response = httpclient.execute(httpGet);
-				
+
 				/**
 				 * Open a buffer to read the content associated to the HTTP
 				 * Response received
 				 */
-				
+
 				BufferedReader rd = new BufferedReader(new InputStreamReader(
 						response.getEntity().getContent()));
-				
+
 				/**
 				 * Read content as a string
 				 */
+				
 				String line = "";
 				String content = "";
 				while ((line = rd.readLine()) != null) {
 					content += line;
 				}
-				
+
 				/**
 				 * Content is actually a JSONObject, more precisely
 				 * a JSONArray with one element for each result of
 				 * the query (namely for the three last updated
 				 * values)
 				 */
-				
+
 				JSONObject json = new JSONObject(content);
-				
+
 				/**
 				 * Extract JSONArray from JSONObject; its name
 				 * is "results"
 				 */
-				
+
 				JSONArray results = json.getJSONArray("results");
-				
+
 				/**
 				 * Parse each element in JSONArray to get X,Y and Z
 				 * values of acceleration and the "update date"
 				 */
-				
+
 				for (int i = 0; i < results.length(); i++) {
 					JSONObject row = (JSONObject) results.get(i);
-					data[i][0] = new Integer(row.getInt("X"));
-					data[i][1] = new Integer(row.getInt("Y"));
-					data[i][2] = new Integer(row.getInt("Z"));
-					data[i][3] = row.getString("updatedAt");
+					data.add(new Object[]{row.getInt("X"),row.getInt("Y"),row.getInt("Z"),row.getString("updatedAt"),row.getInt("Origin")});
 				}
 			} catch (IOException ex) {
 				System.out.println(ex.getMessage());
@@ -1066,108 +1707,98 @@ implements ActionListener {
 				System.out.println(ex.getMessage());
 			}
 		}
-		
+
 		/**
-		 * Event handler associated to the button above the table:
-		 * every time the user clicks on it, we get the last three
-		 * updated measures and show them in the table
+		 * Event handler associated to the button
 		 */
+
 		public void actionPerformed(ActionEvent e) {
-			
+
 			/**
-			 * Retrieve measures
+			 * When the button is clicked, retrieve a number of data from
+			 * Parse as specified by the text field
 			 */
-			
+
 			retrieveMeasures();
-			
+
 			/**
 			 * Method from AbstractTableModel class: notifies all
 			 * listeners that all cells in the table's rows may have
 			 * changed so that JTable should reload them
 			 */
-			
+
 			fireTableDataChanged();
 		}
+
+		/**
+		 * Event handler from DocumentListener interface: it's necessary
+		 * to get the value inserted by the user in the text field
+		 */
+
+		@Override
+		public void changedUpdate(DocumentEvent arg0) {
+		}
+
+		/**
+		 * When a value is written by the user in the text field, check if
+		 * it's a number: if so, store the value, otherwise do nothing
+		 */
+
+		@Override
+		public void insertUpdate(DocumentEvent arg0) {
+			try {
+				int length=arg0.getDocument().getLength();
+				String value=arg0.getDocument().getText(0, length);
+				try{
+					Integer.parseInt(value);
+					limit=value;
+				}
+				catch (NumberFormatException e) {
+
+					/**
+					 * The text is not a number: keep the
+					 * default value for "limit" (1)
+					 */
+					limit="1";
+				}
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent arg0) {
+		}
 	}
+
+	/**
+	 * Extend JPanel class to include reference to the main DDocument
+	 * object
+	 *
+	 */
 
 	private class DPanel extends JPanel {
 
 		private DDocument doc;
-		private int lastX = -1;
-		private int lastY = -1;
 
 		public DPanel(DDocument d) {
 			super();
 			doc = d;
-			addMouseListener(new MouseAdapter() {
-				private boolean withinRange(int val, int low, int high) {
-					return (val >= low && val <= high);
-				}
-
-				public void mousePressed(MouseEvent e) {
-					lastX = e.getX();
-					lastY = e.getY();
-					Iterator it = doc.motes.iterator();
-					while (it.hasNext()) {
-						DMoteModel model = (DMoteModel) it.next();
-						if (withinRange(e.getX(), model.getLocX() - 20,
-								model.getLocX() + 20)
-								&& withinRange(e.getY(), model.getLocY() - 20,
-										model.getLocY() + 20)) {
-							selected = model;
-							System.out.println("ID:" + model.getId());
-							return;
-						}
-					}
-				}
-
-				public void mouseReleased(MouseEvent e) {
-					if (doc.selected != null) {
-						doc.selected = null;
-						lastX = -1;
-						lastY = -1;
-					}
-				}
-			});
-			addMouseMotionListener(new MouseMotionAdapter() {
-				public void mouseDragged(MouseEvent e) {
-					if (doc.selected != null) {
-						if (lastY == -1) {
-							lastY = e.getY();
-						}
-						if (lastX == -1) {
-							lastX = e.getX();
-						}
-						int x = e.getX();
-						int y = e.getY();
-						int dx = x - lastX;
-						int dy = y - lastY;
-						lastX = x;
-						lastY = y;
-
-						selected.move(selected.getLocX() + dx,
-								selected.getLocY() + dy);
-					}
-					doc.navigator.redrawAllLayers();
-				}
-
-			});
 		}
 
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			setOpaque(false);
-			// System.out.println("Painting panel!");
-			doc.navigator.redrawAllLayers();
+		}
+
+		public void paint(Graphics g) {
 		}
 	}
 
-	private class CanvasMouse extends MouseAdapter {
-
-	}
-
 	/**
-	 * User defined AWT event
+	 * User defined AWT event: it's generated every time a new value
+	 * of a field in a received message is read
 	 * 
 	 * @author user
 	 * 
@@ -1181,12 +1812,34 @@ implements ActionListener {
 		 */
 
 		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
+
+		/**
+		 * Extend AWTEvent class with some fields that help to better
+		 * describe the generated event. These are:
+		 * - name of the field the value is referred to
+		 * - actual value of the field
+		 * - mote from which the message with the current value was
+		 *   received
+		 */
+
 		private String name;
 		private int value;
 		private int mote;
 
 		public ValueSetEvent(Object target, int mote, String name, int value) {
+
+			/**
+			 * Constructor of class AWTEvent takes two parameters:
+			 * - the object where the event originated
+			 * - ID of the event
+			 */
+
 			super(target, EVENT_ID);
+
+			/**
+			 * Set specific parameters of this event
+			 */
+
 			this.value = value;
 			this.name = name;
 			this.mote = mote;
@@ -1206,7 +1859,58 @@ implements ActionListener {
 	}
 
 	/**
-	 * User defined AWT event: a link between two motes has been set
+	 * User defined AWT event: it's generated every time a new mote
+	 * appears along the path of a message from leaf to root of the
+	 * tree network
+	 * 
+	 * @author user
+	 * 
+	 */
+
+	protected class NewMoteEvent extends AWTEvent {
+
+		/**
+		 * as suggested by Java Official API, user defined AWT events should get
+		 * an ID which is higher than the "AWTEvent.RESERVED_ID_MAX"
+		 */
+
+		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
+
+		/**
+		 * Extend AWTEvent class with some fields that help to better
+		 * describe the generated event. These are:
+		 * - name of the field the value is referred to
+		 * - actual value of the field
+		 * - mote from which the message with the current value was
+		 *   received
+		 */
+
+		private int moteID;
+
+		public NewMoteEvent(Object target, int moteID) {
+
+			/**
+			 * Constructor of class AWTEvent takes two parameters:
+			 * - the object where the event originated
+			 * - ID of the event
+			 */
+
+			super(target, EVENT_ID);
+
+			/**
+			 * Set specific parameters of this event
+			 */
+
+			this.moteID = moteID;
+		}
+
+		public int moteID() {
+			return moteID;
+		}
+	}
+
+	/**
+	 * User defined AWT event: there's a link between two motes
 	 * 
 	 * @author user
 	 * 
@@ -1215,34 +1919,147 @@ implements ActionListener {
 	protected class LinkSetEvent extends AWTEvent {
 
 		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 2;
-		private String name;
-		private int value;
-		private int start;
-		private int end;
+		private int linkQuality;
+		private int startMote;
+		private int endMote;
 
-		public LinkSetEvent(Object target, String name, int value, int start,
-				int end) {
+		/**
+		 * If true, startMote is a producer
+		 */
+
+		private boolean isProducer;
+
+		public LinkSetEvent(Object target,int linkQuality, int startMote,
+				int endMote,boolean isProducer) {
 			super(target, EVENT_ID);
-			this.value = value;
-			this.name = name;
-			this.start = start;
-			this.end = end;
+			this.linkQuality = linkQuality;
+			this.startMote = startMote;
+			this.endMote = endMote;			
+			this.isProducer=isProducer;
 		}
 
-		public String name() {
-			return name;
+		public int linkQuality() {
+			return linkQuality;
 		}
 
-		public int value() {
-			return value;
+		public int startMote() {
+			return startMote;
 		}
 
-		public int start() {
-			return start;
+		public int endMote() {
+			return endMote;
+		}
+	}
+
+	/**
+	 * User defined AWT event: it's generated every time a new message
+	 * coming from the network of motes is received by the host running
+	 * this applet
+	 * 
+	 * @author user
+	 * 
+	 */
+
+	protected class NewMessageEvent extends AWTEvent {
+
+		/**
+		 * as suggested by Java Official API, user defined AWT events should get
+		 * an ID which is higher than the "AWTEvent.RESERVED_ID_MAX"
+		 */
+
+		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
+
+		/**
+		 * Extend AWTEvent class with some fields that help to better
+		 * describe the generated event. These are:
+		 * - quality of the link
+		 * - sender of the message
+		 * - recipient of the message
+		 */
+
+		private int linkQuality;
+		private int startMote;
+		private int endMote;
+
+		public NewMessageEvent(Object target, int linkQuality, int startMote,int endMote) {
+
+			/**
+			 * Constructor of class AWTEvent takes two parameters:
+			 * - the object where the event originated
+			 * - ID of the event
+			 */
+
+			super(target, EVENT_ID);
+
+			/**
+			 * Set specific parameters of this event
+			 */
+
+			this.linkQuality = linkQuality;
+			this.startMote = startMote;
+			this.endMote = endMote;
+
+			CustomCellRenderer backgroundCellRenderer=new CustomCellRenderer();
+			motesTable.getColumnModel().getColumn(3).setCellRenderer(backgroundCellRenderer);
+
+
 		}
 
-		public int end() {
-			return end;
+		/**
+		 * Methods to retrieve parameters of the event
+		 */
+
+		public int linkQuality() {
+			return linkQuality;
 		}
+
+		public int startMote() {
+			return startMote;
+		}
+
+		public int endMote() {
+			return endMote;
+		}
+	}
+
+	public class CustomCellRenderer extends JLabel implements TableCellRenderer  {
+
+		public CustomCellRenderer() {
+			setOpaque(true); //MUST do this for background to show up.
+		}
+
+		public Component getTableCellRendererComponent(
+				JTable table, Object value,
+				boolean isSelected, boolean hasFocus,
+				int row, int column) {
+
+			/**
+			 * Set the background of the "Color" cell to the
+			 * current background color
+			 */
+
+			setBackground((Color)(tableModel.getValueAt(row, column)));
+			return this;
+		}
+	}
+
+	/**
+	 * When a new path is selected, draw it
+	 */
+
+	@Override
+	public void tableChanged(TableModelEvent arg0) {
+		if(arg0.getColumn()==3){
+			redrawCanvas();
+		}
+
+	}
+
+	public int getHostX() {
+		return hostX;
+	}
+
+	public int getHostY() {
+		return hostY;
 	}
 }

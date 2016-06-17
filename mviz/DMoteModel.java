@@ -30,21 +30,12 @@
  */
 
 package net.tinyos.mviz;
-
-/*
- Store the data state for a single shape:
- type, two points, color
- Supports DShapeModelListeners.
- */
 import java.awt.*;
-
-import javax.swing.*;
 import java.util.*;
-import java.awt.event.*;
 import java.io.*;
 
 /**
- * The model of a field. TO BE CHECKED: why serializable???
+ * The model of data associated to a mote TO BE CHECKED: why serializable???
  * 
  * @author user
  * 
@@ -52,74 +43,50 @@ import java.io.*;
 
 class DMoteModel extends Object implements Serializable {
 
-	public static final int VALUE = 0;
-	public static final int MOTION = 1;
-	public static final int ANY = 1;
+	/**
+	 * Reference to the main panel (DDocument)
+	 */
 
 	public DDocument root;
+
+	/**
+	 * List of object implementing the DMoteModelListener interface:
+	 * they will be notified as something changes in the model of a
+	 * mote
+	 */
+
 	transient private ArrayList listeners;
 
-	protected int x, y, id;
-	protected float[] values;
-	protected Color[] colors;
-	protected int[] sizes;
-
-	protected int SHAPE_SIZE_MAX = 100;
-	protected int COLOR_MAX = 230;
-
 	/**
-	 * This constructor creates a field model specifying its position on the
-	 * canvas, its shape and its colors
-	 * 
-	 * @param id
-	 * @param x
-	 * @param y
-	 * @param values
-	 * @param root
+	 * Coordinates on the canvas of the mote represented by this model
 	 */
 
-	public DMoteModel(int id, int x, int y, float[] values, DDocument root) {
-		this.root = root;
-		this.x = x;
-		this.y = y;
-		this.id = id;
-
-		values = new float[root.sensed_motes.size()];
-		colors = new Color[root.sensed_motes.size()];
-		sizes = new int[root.sensed_motes.size()];
-
-		for (int i = 0; i < values.length; i++) {
-			colors[i] = setColor(values[i]);
-		}
-		for (int i = 0; i < values.length; i++) {
-			sizes[i] = setShapeSize(values[i]);
-		}
-
-		listeners = null;
-	}
+	protected int x, y;
 
 	/**
-	 * Another constructor for mote model: does nothing TO BE CHECKED
-	 * 
-	 * @param root
-	 * @param id
-	 * @param name
+	 * ID of the mote represented by this model
 	 */
 
-	public DMoteModel(DDocument root, int id, String name) {
-
-	}
+	protected int id;
 
 	/**
-	 * Constructor which is actually used for field model: position, shape and
-	 * colors are determined providing a random numbers generator
+	 * Boolean value indicating whether the mote is a
+	 * producer one or not; this information is used
+	 * to draw the mote
+	 */
+
+	private boolean isProducer;
+
+	/**
+	 * Constructor position on the canvas is randomly determined
+	 * at the beginning
 	 * 
 	 * @param id
 	 * @param rand
 	 * @param root
 	 */
 
-	public DMoteModel(int id, Random rand, DDocument root) {
+	public DMoteModel(int id, Random rand, DDocument root,boolean isProducer) {
 
 		/**
 		 * The root container (DDocument)
@@ -134,121 +101,78 @@ class DMoteModel extends Object implements Serializable {
 		this.id = id;
 
 		/**
-		 * X coordinate w.r.t. to the container
+		 * Randomly choose position of the mote on the canvas avoiding
+		 * overlappings
 		 */
 
-		x = 20 + rand.nextInt(root.canvas.getWidth() - 20);
+		boolean overlapping=true;
+		while(overlapping){
 
-		/**
-		 * Y coordinate w.r.t. to the container
-		 */
+			/**
+			 * X coordinate w.r.t. to the container; we don't want the mote to have
+			 * its center exactly on the border, so adjust x with the width of the
+			 * image used to represent the mote
+			 */
 
-		y = 20 + rand.nextInt(root.canvas.getHeight() - 20);
+			x = (int) root.motesImageDimension.getWidth()+rand.nextInt(root.canvas.getWidth() - 2*(int) root.motesImageDimension.getWidth());
 
-		/**
-		 * Array of float values with a number of elements as
-		 * the number of fields of a message
-		 */
+			boolean foundX=true;
+			Iterator moteIterator=root.motes.entrySet().iterator();
+			while(moteIterator.hasNext()){
+				DMoteModel current=((DMoteModel)((Map.Entry)moteIterator.next()).getValue());
+				if((current.x-(int) root.motesImageDimension.getWidth())<=x && x<=(current.x+(int) root.motesImageDimension.getWidth())){
+					foundX=false;
+					break;
+				}
+			}
 
-		values = new float[root.sensed_motes.size()];
+			/**
+			 * Y coordinate w.r.t. to the container; we don't want the mote to have
+			 * its center exactly on the border, so adjust y with the height of the
+			 * image used to represent the mote
+			 */
 
-		/**
-		 * As many colors as fields of a message
- 		 */
-
-		colors = new Color[root.sensed_motes.size()];
-
-		/**
-		 * As many sizes as fields of a message
-		 */
-
-		sizes = new int[root.sensed_motes.size()];
-
-		/**
-		 * Set random color and size for each field
-		 */
-
-		for (int i = 0; i < root.sensed_motes.size(); i++) {
-			float value = rand.nextFloat() * 1000;
-			values[i] = value;
-			colors[i] = setColor(values[i]);
-			sizes[i] = setShapeSize(values[i]);
+			y = (int) root.motesImageDimension.getHeight()+rand.nextInt(root.canvas.getHeight() - 2*(int) root.motesImageDimension.getHeight());
+			boolean foundY=true;
+			moteIterator=root.motes.entrySet().iterator();
+			while(moteIterator.hasNext()){
+				DMoteModel current=((DMoteModel)((Map.Entry)moteIterator.next()).getValue());
+				if((current.y-(int) root.motesImageDimension.getHeight())<=y && y<=(current.y+(int) root.motesImageDimension.getHeight())){
+					foundY=false;
+					break;
+				}
+			}
+			if(!foundY&&!foundX)
+				
+				/**
+				 * The mote overlaps another one: iterate
+				 * to try new random coordinates
+				 */
+				
+				continue;
+			else {
+				overlapping=false;
+			}
 		}
 
+		/**
+		 * No listeners registered yet
+		 */
+
 		listeners = null;
+
+		this.isProducer=isProducer;
 	}
+
+	/**
+	 * Get the id of the mote represented by this motemodel
+	 * 
+	 * @return
+	 */
 
 	public int getId() {
 		return id;
 	}
-
-	/**
-	 * Set a random color for the field
-	 * 
-	 * @param value
-	 * @return
-	 */
-
-	public Color setColor(float value) {
-		int color = (int) (value) % COLOR_MAX;
-		return new Color(color + 15, color, color + 25);
-	}
-	
-	/**
-	 * Set the maximum size for the shape representing the
-	 * field
-	 * @param value
-	 * @return
-	 */
-	
-	public int setShapeSize(float value) {
-		return SHAPE_SIZE_MAX;
-		// return (int)(value/root.maxValues[root.selectedFieldIndex] *
-		// SHAPE_SIZE_MAX);
-	}
-	
-	/**
-	 * Get one of the random values used to determine the color and size
-	 * of the shapes representing the fields of messages
-	 * @param index
-	 * @return
-	 */
-	
-	public float getValue(int index) {
-		if (values.length <= index) {
-			return 0;
-		} else {
-			return (values[index]);
-		}
-	}
-	
-	/**
-	 * Explicitly set the value for a field by its index
-	 * @param field
-	 * @param value
-	 * @return
-	 */
-
-	public boolean setMoteValue(String field, int value) {
-		int index = root.sensed_motes.indexOf(field);
-		if (index < 0)
-			return false;
-		colors[index] = setColor((float) value);
-		setValue(index, (float) value);
-		return true;
-	}
-
-	/* edit by Leo90 - start */
-	public boolean setMoteValue(String field, short value) {
-		int index = root.sensed_motes.indexOf(field);
-		if (index < 0)
-			return false;
-		colors[index] = setColor((float) value);
-		setValue(index, (float) value);
-		return true;
-	}
-
-	/* edit by Leo90 - end */
 
 	public int getX() {
 		return (x);
@@ -258,41 +182,8 @@ class DMoteModel extends Object implements Serializable {
 		return (y);
 	}
 
-	public ImageIcon getIcon() {
-		return root.icon;
-	}
-
-	public void setValue(int index, float value) {
-		values[index] = value;
-		fireChanges();
-	}
-
-	public void applyDeltas(int dx, int dy) {
-		x += dx;
-		y += dy;
-		fireChanges();
-	}
-
 	public Image getImage() {
-		return root.image;
-	}
-
-	public int getWidth(int index) {
-		return getIcon().getImage().getWidth(this.root);
-		// return sizes[index];
-	}
-
-	public int getHeight(int index) {
-		return getIcon().getImage().getHeight(this.root);
-		// return sizes[index];
-	}
-
-	public int getLeft() {
-		return getLocX() - getWidth(0) / 2;
-	}
-
-	public int getTop() {
-		return getLocY() - getHeight(0) / 2;
+		return root.motesImage;
 	}
 
 	public int getLocX() {
@@ -303,13 +194,18 @@ class DMoteModel extends Object implements Serializable {
 		return y;
 	}
 
-	public Color getColor(int index) {
-		return colors[index];
+	public boolean isProducer() {
+		return isProducer;
 	}
-	
+
 	/**
-	 * Add a DMoteModelListener to the set of listeners, namely those
-	 * object that will be notified of any change in the DMoteModel
+	 * Add a DMoteModelListener to the set of listeners, namely those object
+	 * that will be notified of any change in the DMoteModel; add the listener
+	 * only if not already added. Listeners are:
+	 * 
+	 * 1 - DrawTableModel
+	 * 2 - DMote
+	 * 
 	 * @param listener
 	 */
 
@@ -323,9 +219,10 @@ class DMoteModel extends Object implements Serializable {
 		}
 		listeners.add(listener);
 	}
-	
+
 	/**
 	 * Remove a registered listener
+	 * 
 	 * @param listener
 	 */
 
@@ -341,25 +238,23 @@ class DMoteModel extends Object implements Serializable {
 		}
 	}
 
-	// =========================================================================/
-	
 	/**
-	 * Notify all the registered listeners about a change of the field model
+	 * Notify all the registered listeners about a change
+	 * of the value sent by a mote
 	 */
-	
+
 	protected void fireChanges() {
 		if (listeners == null)
 			return;
 		Iterator it = listeners.iterator();
 		while (it.hasNext())
-			((DMoteModelListener) (it.next())).shapeChanged(this, ANY);
+			((DMoteModelListener) (it.next())).shapeChanged(this);
 	}
 
 	public void requestRepaint() {
 		fireChanges();
 	}
 
-	// =========================================================================/
 	public void move(int x, int y) {
 		this.x = x;
 		this.y = y;

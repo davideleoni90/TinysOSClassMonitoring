@@ -30,19 +30,8 @@
  */
 
 package net.tinyos.mviz;
-
-
-// DShapeModel.java
-/*
- Store the data state for a single shape:
-  type, two points, color
- Supports DShapeModelListeners.
-*/
 import java.awt.*;
-
-import javax.swing.*;
 import java.util.*;
-import java.awt.event.*;
 import java.io.*;
 
 
@@ -117,20 +106,6 @@ class DShapeModel extends Object implements Serializable {
 	public int getX2() { return(x2); }
 	public int getY2() { return(y2); }
 	
-	
-	// Below here, code not done
-	
-	
-	public void applyDeltas(int dx1, int dy1, int dx2, int dy2) {
-	    x1 += dx1;
-	    x2 += dx2;
-	    y1 += dy1;
-	    y2 += dy2;
-        
-        x += dx1;
-        y += dy1;
-	    fireChanges();
-	}
 	
 	public int getWidth() {
 	    return Math.abs(x2-x1)+1;

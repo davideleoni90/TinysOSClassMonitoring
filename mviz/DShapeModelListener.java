@@ -31,9 +31,6 @@
 
 package net.tinyos.mviz;
 
-import java.util.EventListener;
-
-// DShapeModelListener.java
 /*
  Interface to listen for shape change notifications.
  As a courtesy, the notification includes a pointer to the

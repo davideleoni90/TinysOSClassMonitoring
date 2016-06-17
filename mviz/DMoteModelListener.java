@@ -31,9 +31,6 @@
 
 package net.tinyos.mviz;
 
-
-import java.util.EventListener;
-
 /**
  * Interface to be implemented in order to receive changes of the shape of a mote on the canvas
  * @author user
@@ -41,5 +38,5 @@ import java.util.EventListener;
  */
 
 public interface DMoteModelListener{
-    public void shapeChanged(DMoteModel changed, int type); 
+    public void shapeChanged(DMoteModel changed); 
 }
