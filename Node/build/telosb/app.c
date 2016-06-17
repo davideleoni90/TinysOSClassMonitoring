@@ -810,18 +810,22 @@ enum __nesc_unnamed4255 {
   SEND_QUEUE_DEPTH = 20, 
   NUMBER_OF_MOTES = 4
 };
-#line 28
+
+
+
+
+
+
+
+
 #line 18
 typedef nx_struct acceleration_msg {
   nx_int16_t x_acceleration;
   nx_int16_t y_acceleration;
   nx_int16_t z_acceleration;
   nx_uint16_t message_path[NUMBER_OF_MOTES];
+  nx_uint16_t path_quality[NUMBER_OF_MOTES];
   nx_uint16_t hopcount;
-  nx_uint16_t origin;
-  nx_uint16_t quality;
-  nx_uint16_t link_path_value;
-  nx_am_addr_t link_path_addr;
 } __attribute__((packed)) acceleration_msg_t;
 # 39 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430Timer.h"
 enum __nesc_unnamed4256 {
@@ -2308,7 +2312,7 @@ static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__VectorTimerX1__fired(v
 #line 39
 static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__default__fired(
 # 51 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerP.nc"
-uint8_t arg_0x4068a990);
+uint8_t arg_0x40688788);
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430Timer.nc"
 static uint16_t /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Timer__get(void );
 # 39 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerEvent.nc"
@@ -2320,7 +2324,7 @@ static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__VectorTimerX1__fired(v
 #line 39
 static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__default__fired(
 # 51 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerP.nc"
-uint8_t arg_0x4068a990);
+uint8_t arg_0x40688788);
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430Timer.nc"
 static uint16_t /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Timer__get(void );
 static bool /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Timer__isOverflowPending(void );
@@ -2509,17 +2513,6 @@ static bool SchedulerBasicP__Scheduler__runNextTask(void );
 static void NodeC__LinkEstimator__evicted(am_addr_t neighbor);
 # 60 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Boot.nc"
 static void NodeC__Boot__booted(void );
-# 110 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
-static void NodeC__AMSend__sendDone(
-#line 103
-message_t * msg, 
-
-
-
-
-
-
-error_t error);
 # 31 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Intercept.nc"
 static bool NodeC__Intercept__forward(
 #line 20
@@ -2535,6 +2528,17 @@ void * payload,
 
 
 uint8_t len);
+# 110 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
+static void NodeC__AMSend__sendDone(
+#line 103
+message_t * msg, 
+
+
+
+
+
+
+error_t error);
 # 113 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/SplitControl.nc"
 static void NodeC__RadioControl__startDone(error_t error);
 #line 138
@@ -2778,7 +2782,7 @@ error_t error);
 # 110 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__sendDone(
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-am_id_t arg_0x40928ab0, 
+am_id_t arg_0x40928770, 
 # 103 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 message_t * msg, 
 
@@ -2791,7 +2795,7 @@ error_t error);
 # 75 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 static error_t /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__send(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 67 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -2809,7 +2813,7 @@ void *
 
 /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__getPayload(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 122 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -2818,7 +2822,7 @@ uint8_t len);
 #line 100
 static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__default__sendDone(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 96 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -3734,23 +3738,23 @@ uint16_t data);
 # 120 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Resource.nc"
 static error_t CC2420SpiP__Resource__release(
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
-uint8_t arg_0x40eb9dd0);
+uint8_t arg_0x40eb8dd0);
 # 97 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Resource.nc"
 static error_t CC2420SpiP__Resource__immediateRequest(
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
-uint8_t arg_0x40eb9dd0);
+uint8_t arg_0x40eb8dd0);
 # 88 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Resource.nc"
 static error_t CC2420SpiP__Resource__request(
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
-uint8_t arg_0x40eb9dd0);
+uint8_t arg_0x40eb8dd0);
 # 102 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Resource.nc"
 static void CC2420SpiP__Resource__default__granted(
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
-uint8_t arg_0x40eb9dd0);
+uint8_t arg_0x40eb8dd0);
 # 128 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Resource.nc"
 static bool CC2420SpiP__Resource__isOwner(
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
-uint8_t arg_0x40eb9dd0);
+uint8_t arg_0x40eb8dd0);
 # 75 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/TaskBasic.nc"
 static void CC2420SpiP__grant__runTask(void );
 # 53 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/interfaces/CC2420Strobe.nc"
@@ -4673,7 +4677,7 @@ static void /*CtpP.Forwarder*/CtpForwardingEngineP__0__LinkEstimator__evicted(am
 # 31 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Intercept.nc"
 static bool /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__default__forward(
 # 114 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/ctp/CtpForwardingEngineP.nc"
-collection_id_t arg_0x413ce280, 
+collection_id_t arg_0x413cd280, 
 # 20 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Intercept.nc"
 message_t * msg, 
 
@@ -5050,7 +5054,7 @@ error_t error);
 # 110 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__sendDone(
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-am_id_t arg_0x40928ab0, 
+am_id_t arg_0x40928770, 
 # 103 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 message_t * msg, 
 
@@ -5063,7 +5067,7 @@ error_t error);
 # 75 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 static error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__send(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 67 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -5077,11 +5081,11 @@ uint8_t len);
 #line 112
 static uint8_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__maxPayloadLength(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8);
+uint8_t arg_0x4092bd50);
 # 100 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__default__sendDone(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 96 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -5128,6 +5132,8 @@ static void /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__triggerImmediateRouteU
 
 
 static void /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__setNeighborCongested(am_addr_t n, bool congested);
+#line 53
+static error_t /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__getParent(am_addr_t *parent);
 # 75 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/TaskBasic.nc"
 static void /*CtpP.Router*/CtpRoutingEngineP__0__sendBeaconTask__runTask(void );
 # 62 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Init.nc"
@@ -5357,7 +5363,7 @@ static inline error_t Msp430ClockP__Init__init(void );
 # 39 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerEvent.nc"
 static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__fired(
 # 51 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerP.nc"
-uint8_t arg_0x4068a990);
+uint8_t arg_0x40688788);
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430Timer.nc"
 static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Timer__overflow(void );
 # 62 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerP.nc"
@@ -5387,7 +5393,7 @@ static inline void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__default_
 # 39 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerEvent.nc"
 static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__fired(
 # 51 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerP.nc"
-uint8_t arg_0x4068a990);
+uint8_t arg_0x40688788);
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430Timer.nc"
 static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Timer__overflow(void );
 # 62 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerP.nc"
@@ -5942,6 +5948,8 @@ static error_t SchedulerBasicP__TaskBasic__postTask(uint8_t id);
 static void SchedulerBasicP__TaskBasic__default__runTask(uint8_t id);
 # 41 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/RootControl.nc"
 static error_t NodeC__RootControl__setRoot(void );
+# 49 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/4bitle/LinkEstimator.nc"
+static uint16_t NodeC__LinkEstimator__getLinkQuality(uint16_t neighbor);
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 static error_t NodeC__AMSend__send(am_addr_t addr, 
 #line 71
@@ -5966,8 +5974,6 @@ message_t * msg,
 
 
 uint8_t len);
-# 104 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/SplitControl.nc"
-static error_t NodeC__RadioControl__start(void );
 # 73 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Queue.nc"
 static 
 #line 71
@@ -5986,9 +5992,13 @@ NodeC__Queue__t
 NodeC__Queue__dequeue(void );
 #line 50
 static bool NodeC__Queue__empty(void );
+# 104 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/SplitControl.nc"
+static error_t NodeC__RadioControl__start(void );
 # 67 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/TaskBasic.nc"
 static error_t NodeC__startRadio__postTask(void );
-#line 67
+# 53 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/ctp/CtpInfo.nc"
+static error_t NodeC__CtpInfo__getParent(am_addr_t *parent);
+# 67 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/TaskBasic.nc"
 static error_t NodeC__sendSerialMessage__postTask(void );
 # 72 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Leds.nc"
 static void NodeC__Leds__led1On(void );
@@ -6011,36 +6021,63 @@ static void NodeC__Leds__led1Off(void );
 static void NodeC__Leds__led0On(void );
 # 95 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/StdControl.nc"
 static error_t NodeC__StdControl__start(void );
-# 59 "NodeC.nc"
+# 89 "NodeC.nc"
 enum NodeC____nesc_unnamed4332 {
-#line 59
+#line 89
   NodeC__startRadio = 0U
 };
-#line 59
+#line 89
 typedef int NodeC____nesc_sillytask_startRadio[NodeC__startRadio];
 
 enum NodeC____nesc_unnamed4333 {
-#line 61
+#line 91
   NodeC__sendSerialMessage = 1U
 };
-#line 61
+#line 91
 typedef int NodeC____nesc_sillytask_sendSerialMessage[NodeC__sendSerialMessage];
-#line 25
+#line 24
 bool NodeC__serialBusy = FALSE;
+
+
+
 
 
 
 message_t NodeC__serialMessage;
 
+
+
+
+
 message_t *NodeC__queueHead;
+
+
+
+
 
 error_t NodeC__queueFull = FAIL;
 
+
+
+
+
 error_t NodeC__rootOn = FAIL;
+
+
+
+
 
 error_t NodeC__radioOn = EOFF;
 
+
+
+
+
 error_t NodeC__ctpOn = FAIL;
+
+
+
+
 
 error_t NodeC__sendingToSerial;
 
@@ -6048,39 +6085,54 @@ error_t NodeC__sendingToSerial;
 
 
 
+
 acceleration_msg_t *NodeC__payloadSerial;
+
+
+
+
 
 acceleration_msg_t *NodeC__dataReceived;
 acceleration_msg_t *NodeC__dataToSend;
-#line 64
+
+
+
+
+
+am_addr_t NodeC__parent;
+
+
+
+
+
+
+
+
+
 static inline void NodeC__Boot__booted(void );
 
 
 
 
 
+
+
+
 static inline void NodeC__startRadio__runTask(void );
-#line 84
+#line 123
 static inline void NodeC__RadioControl__startDone(error_t error);
-#line 106
+#line 152
 static inline void NodeC__RadioControl__stopDone(error_t error);
-
-
-
-
-
-
-
-
+#line 164
 static inline bool NodeC__Intercept__forward(message_t *msg, void *payload, uint8_t len);
-#line 171
+#line 226
 static message_t *NodeC__RootReceive__receive(message_t *msg, void *payload, uint8_t len);
-#line 200
+#line 282
 static inline void NodeC__sendSerialMessage__runTask(void );
-#line 240
+#line 353
 static void NodeC__AMSend__sendDone(message_t *msg, error_t error);
-#line 263
-static inline void NodeC__LinkEstimator__evicted(am_addr_t addr);
+#line 394
+static inline void NodeC__LinkEstimator__evicted(am_addr_t neighbor);
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/GeneralIO.nc"
 static void LedsP__Led0__makeOutput(void );
 #line 40
@@ -6339,7 +6391,7 @@ static inline void /*PrintfC.SerialAMSenderC.AMQueueEntryP*/AMQueueEntryP__0__Se
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 static error_t /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__send(
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-am_id_t arg_0x40928ab0, 
+am_id_t arg_0x40928770, 
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 am_addr_t addr, 
 #line 71
@@ -6360,7 +6412,7 @@ void *
 
 /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__getPayload(
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-am_id_t arg_0x40928ab0, 
+am_id_t arg_0x40928770, 
 # 132 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 message_t * msg, 
 
@@ -6369,7 +6421,7 @@ uint8_t len);
 # 100 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__sendDone(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 96 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -8733,7 +8785,7 @@ static bool CC2420SpiP__SpiResource__isOwner(void );
 #line 102
 static void CC2420SpiP__Resource__granted(
 # 45 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
-uint8_t arg_0x40eb9dd0);
+uint8_t arg_0x40eb8dd0);
 # 67 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/TaskBasic.nc"
 static error_t CC2420SpiP__grant__postTask(void );
 # 88 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/cc2420/spi/CC2420SpiP.nc"
@@ -10943,7 +10995,7 @@ static bool /*CtpP.Forwarder*/CtpForwardingEngineP__0__SentCache__lookup(/*CtpP.
 # 31 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Intercept.nc"
 static bool /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__forward(
 # 114 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/ctp/CtpForwardingEngineP.nc"
-collection_id_t arg_0x413ce280, 
+collection_id_t arg_0x413cd280, 
 # 20 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Intercept.nc"
 message_t * msg, 
 
@@ -11791,7 +11843,7 @@ static inline uint8_t /*CtpP.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 static error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__send(
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-am_id_t arg_0x40928ab0, 
+am_id_t arg_0x40928770, 
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
 am_addr_t addr, 
 #line 71
@@ -11808,11 +11860,11 @@ uint8_t len);
 #line 123
 static uint8_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__maxPayloadLength(
 # 48 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-am_id_t arg_0x40928ab0);
+am_id_t arg_0x40928770);
 # 100 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__sendDone(
 # 46 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/system/AMQueueImplP.nc"
-uint8_t arg_0x409280c8, 
+uint8_t arg_0x4092bd50, 
 # 96 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
 message_t * msg, 
 
@@ -12114,7 +12166,20 @@ static inline am_addr_t /*CtpP.Router*/CtpRoutingEngineP__0__Routing__nextHop(vo
 
 
 static inline bool /*CtpP.Router*/CtpRoutingEngineP__0__Routing__hasRoute(void );
-#line 563
+
+
+
+
+static inline error_t /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__getParent(am_addr_t *parent);
+
+
+
+
+
+
+
+
+
 static error_t /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__getEtx(uint16_t *etx);
 #line 576
 static inline void /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__recomputeRoutes(void );
@@ -12379,9 +12444,9 @@ static inline void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__default_
 }
 
 # 39 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerEvent.nc"
-inline static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__fired(uint8_t arg_0x4068a990){
+inline static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__fired(uint8_t arg_0x40688788){
 #line 39
-  switch (arg_0x4068a990) {
+  switch (arg_0x40688788) {
 #line 39
     case 0:
 #line 39
@@ -12409,7 +12474,7 @@ inline static void /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__fired(ui
 #line 39
     default:
 #line 39
-      /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__default__fired(arg_0x4068a990);
+      /*Msp430TimerC.Msp430TimerA*/Msp430TimerP__0__Event__default__fired(arg_0x40688788);
 #line 39
       break;
 #line 39
@@ -17156,13 +17221,13 @@ inline static am_addr_t /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMPacket
 }
 #line 78
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
-inline static error_t /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__send(am_id_t arg_0x40928ab0, am_addr_t addr, message_t * msg, uint8_t len){
+inline static error_t /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__send(am_id_t arg_0x40928770, am_addr_t addr, message_t * msg, uint8_t len){
 #line 80
   unsigned char __nesc_result;
 #line 80
 
 #line 80
-  __nesc_result = /*SerialActiveMessageC.AM*/SerialActiveMessageP__0__AMSend__send(arg_0x40928ab0, addr, msg, len);
+  __nesc_result = /*SerialActiveMessageC.AM*/SerialActiveMessageP__0__AMSend__send(arg_0x40928770, addr, msg, len);
 #line 80
 
 #line 80
@@ -18730,9 +18795,9 @@ static inline void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__default__send
 }
 
 # 100 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
-inline static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__sendDone(uint8_t arg_0x409280c8, message_t * msg, error_t error){
+inline static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__sendDone(uint8_t arg_0x4092bd50, message_t * msg, error_t error){
 #line 100
-  switch (arg_0x409280c8) {
+  switch (arg_0x4092bd50) {
 #line 100
     case 0U:
 #line 100
@@ -18748,7 +18813,7 @@ inline static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__sendDone(uint
 #line 100
     default:
 #line 100
-      /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__default__sendDone(arg_0x409280c8, msg, error);
+      /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__default__sendDone(arg_0x4092bd50, msg, error);
 #line 100
       break;
 #line 100
@@ -19088,13 +19153,13 @@ inline static error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__errorTask__postT
 }
 #line 67
 # 80 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
-inline static error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__send(am_id_t arg_0x40928ab0, am_addr_t addr, message_t * msg, uint8_t len){
+inline static error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__send(am_id_t arg_0x40928770, am_addr_t addr, message_t * msg, uint8_t len){
 #line 80
   unsigned char __nesc_result;
 #line 80
 
 #line 80
-  __nesc_result = CC2420ActiveMessageP__AMSend__send(arg_0x40928ab0, addr, msg, len);
+  __nesc_result = CC2420ActiveMessageP__AMSend__send(arg_0x40928770, addr, msg, len);
 #line 80
 
 #line 80
@@ -20847,25 +20912,110 @@ inline static void NodeC__Leds__led1Toggle(void ){
 #line 83
 }
 #line 83
-# 115 "NodeC.nc"
+# 49 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/4bitle/LinkEstimator.nc"
+inline static uint16_t NodeC__LinkEstimator__getLinkQuality(uint16_t neighbor){
+#line 49
+  unsigned int __nesc_result;
+#line 49
+
+#line 49
+  __nesc_result = LinkEstimatorP__LinkEstimator__getLinkQuality(neighbor);
+#line 49
+
+#line 49
+  return __nesc_result;
+#line 49
+}
+#line 49
+# 553 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/ctp/CtpRoutingEngineP.nc"
+static inline error_t /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__getParent(am_addr_t *parent)
+#line 553
+{
+  if (parent == (void *)0) {
+    return FAIL;
+    }
+#line 556
+  if (/*CtpP.Router*/CtpRoutingEngineP__0__routeInfo.parent == INVALID_ADDR) {
+    return FAIL;
+    }
+#line 558
+  *parent = /*CtpP.Router*/CtpRoutingEngineP__0__routeInfo.parent;
+  printf("RETURNING PARENT:%d", *parent);
+  return SUCCESS;
+}
+
+# 53 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/ctp/CtpInfo.nc"
+inline static error_t NodeC__CtpInfo__getParent(am_addr_t *parent){
+#line 53
+  unsigned char __nesc_result;
+#line 53
+
+#line 53
+  __nesc_result = /*CtpP.Router*/CtpRoutingEngineP__0__CtpInfo__getParent(parent);
+#line 53
+
+#line 53
+  return __nesc_result;
+#line 53
+}
+#line 53
+# 164 "NodeC.nc"
 static inline bool NodeC__Intercept__forward(message_t *msg, void *payload, uint8_t len)
-#line 115
+#line 164
 {
   unsigned int __nesc_temp43;
   unsigned char *__nesc_temp42;
 
-#line 116
+#line 165
   NodeC__dataReceived = (acceleration_msg_t *)payload;
   if (NodeC__dataReceived != (void *)0 && sizeof(acceleration_msg_t ) == len) {
+
+
+
+
+
       __nesc_hton_uint16(NodeC__dataReceived->message_path[__nesc_ntoh_uint16(NodeC__dataReceived->hopcount.nxdata)].nxdata, TOS_NODE_ID);
+
+
+
+
+
+      NodeC__CtpInfo__getParent(&NodeC__parent);
+
+
+
+
+
+
+      __nesc_hton_uint16(NodeC__dataReceived->path_quality[__nesc_ntoh_uint16(NodeC__dataReceived->hopcount.nxdata)].nxdata, NodeC__LinkEstimator__getLinkQuality(NodeC__parent));
+#line 185
+      ;
+
+
+
+
+
+
       (__nesc_temp42 = NodeC__dataReceived->hopcount.nxdata, __nesc_hton_uint16(__nesc_temp42, (__nesc_temp43 = __nesc_ntoh_uint16(__nesc_temp42)) + 1), __nesc_temp43);
 
+
+
+
+
       NodeC__Leds__led1Toggle();
+
+
+
+
 
       return TRUE;
     }
   printf("Packet not well formed: discarding it...\n");
   printfflush();
+
+
+
+
 
   return FALSE;
 }
@@ -20882,13 +21032,13 @@ uint8_t len)
 }
 
 # 31 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Intercept.nc"
-inline static bool /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__forward(collection_id_t arg_0x413ce280, message_t * msg, void * payload, uint8_t len){
+inline static bool /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__forward(collection_id_t arg_0x413cd280, message_t * msg, void * payload, uint8_t len){
 #line 31
   unsigned char __nesc_result;
 #line 31
 
 #line 31
-  switch (arg_0x413ce280) {
+  switch (arg_0x413cd280) {
 #line 31
     case CTP_COLLECTION_ID:
 #line 31
@@ -20898,7 +21048,7 @@ inline static bool /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__forward
 #line 31
     default:
 #line 31
-      __nesc_result = /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__default__forward(arg_0x413ce280, msg, payload, len);
+      __nesc_result = /*CtpP.Forwarder*/CtpForwardingEngineP__0__Intercept__default__forward(arg_0x413cd280, msg, payload, len);
 #line 31
       break;
 #line 31
@@ -20969,13 +21119,13 @@ static inline uint8_t CC2420ActiveMessageP__AMSend__maxPayloadLength(am_id_t id)
 }
 
 # 123 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
-inline static uint8_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__maxPayloadLength(am_id_t arg_0x40928ab0){
+inline static uint8_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__maxPayloadLength(am_id_t arg_0x40928770){
 #line 123
   unsigned char __nesc_result;
 #line 123
 
 #line 123
-  __nesc_result = CC2420ActiveMessageP__AMSend__maxPayloadLength(arg_0x40928ab0);
+  __nesc_result = CC2420ActiveMessageP__AMSend__maxPayloadLength(arg_0x40928770);
 #line 123
 
 #line 123
@@ -21187,12 +21337,10 @@ static inline error_t /*CtpP.Router*/CtpRoutingEngineP__0__routingTableUpdateEnt
   return SUCCESS;
 }
 
-# 263 "NodeC.nc"
-static inline void NodeC__LinkEstimator__evicted(am_addr_t addr)
-#line 263
+# 394 "NodeC.nc"
+static inline void NodeC__LinkEstimator__evicted(am_addr_t neighbor)
+#line 394
 {
-  printf("Neighbor %d evicted", addr);
-  printfflush();
 }
 
 # 769 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/lib/net/ctp/CtpForwardingEngineP.nc"
@@ -23762,9 +23910,9 @@ static inline void CC2420SpiP__Resource__default__granted(uint8_t id)
 }
 
 # 102 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Resource.nc"
-inline static void CC2420SpiP__Resource__granted(uint8_t arg_0x40eb9dd0){
+inline static void CC2420SpiP__Resource__granted(uint8_t arg_0x40eb8dd0){
 #line 102
-  switch (arg_0x40eb9dd0) {
+  switch (arg_0x40eb8dd0) {
 #line 102
     case /*CC2420ControlC.Spi*/CC2420SpiC__0__CLIENT_ID:
 #line 102
@@ -23798,7 +23946,7 @@ inline static void CC2420SpiP__Resource__granted(uint8_t arg_0x40eb9dd0){
 #line 102
     default:
 #line 102
-      CC2420SpiP__Resource__default__granted(arg_0x40eb9dd0);
+      CC2420SpiP__Resource__default__granted(arg_0x40eb8dd0);
 #line 102
       break;
 #line 102
@@ -24319,9 +24467,9 @@ static inline void CC2420CsmaP__sendDone_task__runTask(void )
   CC2420CsmaP__Send__sendDone(CC2420CsmaP__m_msg, packetErr);
 }
 
-# 106 "NodeC.nc"
+# 152 "NodeC.nc"
 static inline void NodeC__RadioControl__stopDone(error_t error)
-#line 106
+#line 152
 {
 }
 
@@ -24442,9 +24590,9 @@ inline static error_t NodeC__startRadio__postTask(void ){
 #line 67
 }
 #line 67
-# 84 "NodeC.nc"
+# 123 "NodeC.nc"
 static inline void NodeC__RadioControl__startDone(error_t error)
-#line 84
+#line 123
 {
   NodeC__radioOn = error;
   if (error != SUCCESS) {
@@ -24455,6 +24603,10 @@ static inline void NodeC__RadioControl__startDone(error_t error)
     }
   NodeC__Leds__led0On();
   if (TOS_NODE_ID == ROOT_ID) {
+
+
+
+
 
       NodeC__rootOn = NodeC__RootControl__setRoot();
       while (NodeC__rootOn != SUCCESS) {
@@ -25279,9 +25431,9 @@ static inline void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__default
 }
 
 # 100 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/Send.nc"
-inline static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__sendDone(uint8_t arg_0x409280c8, message_t * msg, error_t error){
+inline static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__sendDone(uint8_t arg_0x4092bd50, message_t * msg, error_t error){
 #line 100
-  switch (arg_0x409280c8) {
+  switch (arg_0x4092bd50) {
 #line 100
     case 0U:
 #line 100
@@ -25297,7 +25449,7 @@ inline static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__sendDon
 #line 100
     default:
 #line 100
-      /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__default__sendDone(arg_0x409280c8, msg, error);
+      /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__Send__default__sendDone(arg_0x4092bd50, msg, error);
 #line 100
       break;
 #line 100
@@ -26902,13 +27054,13 @@ static inline void */*SerialActiveMessageC.AM*/SerialActiveMessageP__0__AMSend__
 }
 
 # 135 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/interfaces/AMSend.nc"
-inline static void * /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__getPayload(am_id_t arg_0x40928ab0, message_t * msg, uint8_t len){
+inline static void * /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__AMSend__getPayload(am_id_t arg_0x40928770, message_t * msg, uint8_t len){
 #line 135
   void *__nesc_result;
 #line 135
 
 #line 135
-  __nesc_result = /*SerialActiveMessageC.AM*/SerialActiveMessageP__0__AMSend__getPayload(arg_0x40928ab0, msg, len);
+  __nesc_result = /*SerialActiveMessageC.AM*/SerialActiveMessageP__0__AMSend__getPayload(arg_0x40928770, msg, len);
 #line 135
 
 #line 135
@@ -26975,13 +27127,21 @@ inline static NodeC__Queue__t  NodeC__Queue__head(void ){
 #line 73
 }
 #line 73
-# 200 "NodeC.nc"
+# 282 "NodeC.nc"
 static inline void NodeC__sendSerialMessage__runTask(void )
-#line 200
+#line 282
 {
   if (!NodeC__serialBusy) {
 
+
+
+
+
       NodeC__payloadSerial = (acceleration_msg_t *)NodeC__AMSend__getPayload(&NodeC__serialMessage, sizeof(acceleration_msg_t ));
+
+
+
+
 
 
       if (NodeC__payloadSerial != (void *)0) {
@@ -26990,15 +27150,35 @@ static inline void NodeC__sendSerialMessage__runTask(void )
 
 
 
+
+
+
+
           NodeC__queueHead = NodeC__Queue__head();
+
+
+
+
 
           if (NodeC__queueHead != (void *)0) {
               NodeC__dataToSend = (acceleration_msg_t *)NodeC__AMSend__getPayload(NodeC__queueHead, sizeof(acceleration_msg_t ));
 
 
+
+
+
+
               memcpy(NodeC__payloadSerial, NodeC__dataToSend, sizeof(acceleration_msg_t ));
 
+
+
+
+
               NodeC__sendingToSerial = NodeC__AMSend__send(0xffff, &NodeC__serialMessage, sizeof(acceleration_msg_t ));
+
+
+
+
 
               if (NodeC__sendingToSerial != SUCCESS) {
                   NodeC__Leds__led1On();
@@ -27156,9 +27336,9 @@ inline static error_t NodeC__RadioControl__start(void ){
 #line 104
 }
 #line 104
-# 70 "NodeC.nc"
+# 106 "NodeC.nc"
 static inline void NodeC__startRadio__runTask(void )
-#line 70
+#line 106
 {
   NodeC__RadioControl__start();
   NodeC__ctpOn = NodeC__StdControl__start();
@@ -28404,9 +28584,9 @@ inline static /*BusyWaitMicroC.BusyWaitCounterC*/BusyWaitCounterC__0__Counter__s
 #line 64
 }
 #line 64
-# 64 "NodeC.nc"
+# 97 "NodeC.nc"
 static inline void NodeC__Boot__booted(void )
-#line 64
+#line 97
 {
   NodeC__startRadio__postTask();
 }
@@ -30283,9 +30463,9 @@ static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__default__fired(
 }
 
 # 39 "/home/user/Desktop/tinyos-release-tinyos-2_1_2/tos/chips/msp430/timer/Msp430TimerEvent.nc"
-static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__fired(uint8_t arg_0x4068a990){
+static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__fired(uint8_t arg_0x40688788){
 #line 39
-  switch (arg_0x4068a990) {
+  switch (arg_0x40688788) {
 #line 39
     case 0:
 #line 39
@@ -30337,7 +30517,7 @@ static void /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__fired(uint8_t a
 #line 39
     default:
 #line 39
-      /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__default__fired(arg_0x4068a990);
+      /*Msp430TimerC.Msp430TimerB*/Msp430TimerP__1__Event__default__fired(arg_0x40688788);
 #line 39
       break;
 #line 39
@@ -32464,15 +32644,27 @@ static void */*CtpP.Forwarder*/CtpForwardingEngineP__0__Packet__getPayload(messa
   return payload;
 }
 
-# 171 "NodeC.nc"
+# 226 "NodeC.nc"
 static message_t *NodeC__RootReceive__receive(message_t *msg, void *payload, uint8_t len)
-#line 171
+#line 226
 {
   NodeC__dataReceived = (acceleration_msg_t *)payload;
 
+
+
+
+
   if (NodeC__dataReceived != (void *)0 && len == sizeof(acceleration_msg_t )) {
 
+
+
+
+
       NodeC__queueFull = NodeC__Queue__enqueue(msg);
+
+
+
+
 
       if (NodeC__queueFull != SUCCESS) {
           printf("The sending queue is full or some other problem has occurred! Discarding packet...\n");
@@ -32481,11 +32673,23 @@ static message_t *NodeC__RootReceive__receive(message_t *msg, void *payload, uin
     }
   else {
 
+
+
+
+
       printf("Packet not well formed: discarding it...\n");
       printfflush();
     }
 
+
+
+
+
   NodeC__sendSerialMessage__postTask();
+
+
+
+
 
 
 
@@ -33109,19 +33313,31 @@ static void /*SerialAMQueueP.AMQueueImplP*/AMQueueImplP__0__tryToSend(void )
     }
 }
 
-# 240 "NodeC.nc"
+# 353 "NodeC.nc"
 static void NodeC__AMSend__sendDone(message_t *msg, error_t error)
-#line 240
+#line 353
 {
+
+
+
+
 
   NodeC__serialBusy = FALSE;
   if (error == SUCCESS) {
       printf("Message correctly sent\n");
 
+
+
+
+
       NodeC__Queue__dequeue();
       NodeC__Leds__led2Toggle();
       NodeC__Leds__led1Off();
       if (NodeC__Queue__empty() == FALSE) {
+
+
+
+
 
 
           NodeC__sendSerialMessage__postTask();

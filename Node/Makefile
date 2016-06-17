@@ -9,9 +9,10 @@ BUILD_EXTRA_DEPS = SensorsDataMsg.class
 CLEAN_EXTRA = *.class *.java
 
 SensorsDataMsg.java: ../Acceleration.h
-	mig -target=null -java-classname=SensorsDataMsg java ../Acceleration.h acceleration_msg -o $@
+	mkdir ../node
+	mig -target=null -java-classname=node.SensorsDataMsg java ../Acceleration.h acceleration_msg -o ../node/$@
 
 SensorsDataMsg.class: SensorsDataMsg.java
-	javac SensorsDataMsg.java
+	javac ../node/SensorsDataMsg.java
 
 include $(MAKERULES)
