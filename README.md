@@ -18,25 +18,22 @@
 <h2>Architecture</h2>
   <p> This solution achieves class monitoring through two steps:
     <ol type="1">
-      <li> DATA CAPTURE: a wireless sensors network (WSN) of motes, some of them featuring an accelerometer,
-        gathers data about movements of the people
-      <li> DATA VISUALIZATION AND STORAGE: a Java applet receives data from the network, draws a graph to
-        represent the topology of the network (as it evolves over time) and upload data to an online
-        repository.
+      <li> DATA CAPTURE: a wireless sensors network (WSN) of motes, some of them featuring an accelerometer,gathers data about movements of the people</li>
+      <li> DATA VISUALIZATION AND STORAGE: a Java applet receives data from the network, draws a graph to represent the topology of the network (as it evolves over time) and upload data to an online repository.</li>
     </ol>
-    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpg" alt="Architecture">
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
   </p>
 
-        <h2>Architecture</h2>
-        <p> The network is based on the <i>Collection Tree Protocol (CTP)</i>:nodes organize themselves to form a <i>tree-shaped</i> network, where packets are transmitted from the leaf node to the root node. In particular, every node maintains its own routing table
-          with an estimation of the quality of the link to all its neighbors, so it's always capable of determining the path which involves less hops before a packet is delivered to the root;
-          periodically every node sends broadcast packets (beacons), waiting for the other nodes to acknowledge them in order to discover the quality of the links.
-          For this project the architecture of the network is as follows:
-          <ul>
-            <li> <u>1 leaf node</u>: interacts with the accelerometer in order to sample data from it and then sends them towards the root of the network. Its mote-id has to be set to "1" in order to correctly update data on Parse(see later)</li>
-            <li> <u>1 root node </u>: the recipient of the data sent by the leaf; it's connected to the serial port of a pc</li>
-            <li> <u><i>n</i> intermediate nodes</u>: they are in charge of forwarding data received from one neighbor node to another neighbor node on the path to the root</li>
-          </ul>
+       <h2>Architecture</h2>
+       <p> The network is based on the <i>Collection Tree Protocol (CTP)</i>:nodes organize themselves to form a <i>tree-shaped</i> network, where packets are transmitted from the leaf node to the root node. In particular, every node maintains its own routing table
+    with an estimation of the quality of the link to all its neighbors, so it's always capable of determining the path which involves less hops before a packet is delivered to the root;
+      periodically every node sends broadcast packets (beacons), waiting for the other nodes to acknowledge them in order to discover the quality of the links.
+     For this project the architecture of the network is as follows:
+      <ul>
+         <li> <u>1 leaf node</u>: interacts with the accelerometer in order to sample data from it and then sends them towards the root of the network. Its mote-id has to be set to "1" in order to correctly update data on Parse(see later)</li>
+          <li> <u>1 root node </u>: the recipient of the data sent by the leaf; it's connected to the serial port of a pc</li>
+          <li> <u><i>n</i> intermediate nodes</u>: they are in charge of forwarding data received from one neighbor node to another neighbor node on the path to the root</li>
+       </ul>
           The root node interacts with a pc which is connected to the Internet: the Java application running on it uploads data to a server as it receives them from the serial port.
         </p>
         <h2>Hardware implementation</h2>
