@@ -30,8 +30,6 @@
  */
 
 package net.tinyos.mviz;
-import java.awt.*;
-import java.util.*;
 import java.io.*;
 
 
@@ -39,22 +37,13 @@ class DLinkModel
 extends Object 
 implements Serializable {
 
-	public static final int VALUE = 0;
-	public static final int MOTION = 1;
-	public static final int ANY = 1;
-
-
 	public DDocument root;
-	transient private ArrayList listeners;
-
 	protected int x12, y12;
 	protected int[] values;
 	protected int quality;
 
 	DMoteModel m1;
 	DMoteModel m2;
-
-	protected int COLOR_MAX = 230;
 
 	public DLinkModel(DMoteModel m1, DMoteModel m2,DDocument root){
 		this.root = root;
@@ -76,70 +65,15 @@ implements Serializable {
 		return quality;
 	}
 
-	public Color setColor(float value){
-		int color = (int)(value)%COLOR_MAX;
-		return new Color(color+15, color, color+25);
-	} 
-
-	/*public int getValue() { return(values[root.selectedLinkIndex]); }*/
 	public int getValue(int index) {
-		//System.out.println("Gettting link value " + index);
 		return(values[index]);
 	}
-	/*public int getValue(String name) {
-		int index = root.sensed_links.indexOf(name);
-		if (index < 0) return 0 ;
-		return values[index];
-	}*/
-	public int getTop() { return(Math.min(m1.y, m2.y)); }		
-	public int getBottom() { return(Math.max(m1.y, m2.y)); }		
-	public int getLeft() { return(Math.min(m1.x, m2.x)); }		
-	public int getRight() { return(Math.max(m1.x, m2.x)); }
-
-	public int getWidth() { return(Math.abs(m1.x - m2.x)); }
-	public int getHeight() { return(Math.abs(m1.y - m2.y)); }
-
-	protected Color getColor() {
-		return Color.RED;
-	}
-	public void setValue(int value){
-		/*values[root.selectedLinkIndex] = value;*/
-		fireChanges();
-	}
-
-
+	
 	public int getLocX() {
 		return x12;
 	}	
 	public int getLocY() {
 		return y12;
 	}		
-
-
-	public void addListener(DLinkModelListener listener) {
-		if (listeners == null) listeners = new ArrayList();
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) { if (it.next() == listener) return; };		
-		listeners.add(listener);	    
-	}
-
-	public void removeListener(DLinkModelListener listener) {
-		if (listeners == null) return;	    
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) {
-			if (it.next() == listener){
-				it.remove();
-				return;
-			}		
-		}	        	
-	}
-	//=========================================================================/
-	protected void fireChanges(){
-		if (listeners==null) return;
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) 
-			((DLinkModelListener)(it.next())).shapeChanged(this, ANY);
-	}
-
 }
 

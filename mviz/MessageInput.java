@@ -29,23 +29,16 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package net.tinyos.mviz;
-import java.awt.EventQueue;
-import java.awt.Toolkit;
 import java.io.*;
 import java.util.*;
 
 import net.tinyos.message.*;
-import net.tinyos.mviz.DDocument.LinkSetEvent;
-import net.tinyos.mviz.DDocument.NewMessageEvent;
 import net.tinyos.packet.*;
 import net.tinyos.util.*;
 import node.SensorsDataMsg;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.*;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.entity.*;
 
 /**
@@ -222,11 +215,11 @@ public class MessageInput implements net.tinyos.message.MessageListener {
 			 */
 
 			Short x = msg.get_x_acceleration();
-			valuesToUpload[1] = x;
+			valuesToUpload[0] = x;
 			Short y = msg.get_y_acceleration();
-			valuesToUpload[2] = y;
+			valuesToUpload[1] = y;
 			Short z = msg.get_z_acceleration();
-			valuesToUpload[3] = z;
+			valuesToUpload[2] = z;
 			
 			/**
 			 * Then add ID of the sender

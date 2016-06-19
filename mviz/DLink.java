@@ -32,12 +32,10 @@
 package net.tinyos.mviz;
 import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.geom.Line2D;
 
 public class DLink 
 extends JComponent 
-implements DLinkModelListener
 {
 
 	protected DLinkModel model;
@@ -45,73 +43,23 @@ implements DLinkModelListener
 	private Color color;
 	private int index;
 	private int lastX, lastY;
-
-	// Move or Resize ?
-	private int action;
-	private static final int MOVE = 0;
-	//=========================================================================//
+	
 	public DLink(DLinkModel model, DDocument document,Color color,int index) {
 		super();
 		this.model = model;
 		this.document = document;
 		this.color=color;
 		this.index=index;
-		model.addListener(this);
+		}
 
-		// Mouse listeners.
-		addMouseListener( 
-				new MouseAdapter() 
-				{
-					public void mousePressed(MouseEvent e) {
-						selected();
-						lastX = e.getX()+getX();
-						lastY = e.getY()+getY();
-
-						if (e.isControlDown()){ 
-						}else if(e.isAltDown()){ 
-						}else if(e.isShiftDown()){
-						}else{ DetermineAction(lastX, lastY); }			    
-					}
-				}
-				);
-
-		addMouseMotionListener( 
-				new MouseMotionAdapter() 
-				{
-					public void mouseDragged(MouseEvent e) {
-
-						int x = e.getX()+getX();
-						int y = e.getY()+getY();
-						// compute delta from last point
-						int dx = x-lastX;
-						int dy = y-lastY;
-						lastX = x;
-						lastY = y;
-
-						switch(action){
-						case MOVE: DoAction(dx, dy); break;
-						}
-					}
-				}
-				);
-
-		synchToModel();		
-	}
-
-	//=========================================================================//
-	public DLinkModel getModel() {
-		return(model);
-	}
-
-	//=========================================================================//
-	public void shapeChanged(DLinkModel changed, int type) {
-		synchToModel();
-		repaint();
-	}
-	//=========================================================================//
 	public void paintShape(Graphics g){
 		Graphics2D g2 = (Graphics2D) g;
-		g.setColor(Color.BLACK);
+		
+		/**
+		 * Check if valid link (it should always be
+		 * this case)
+		 */
+		
 		int diffX = (model.m1.getLocX() - model.m2.getLocX());
 		int diffY = (model.m1.getLocY() - model.m2.getLocY());
 		if (diffX == 0 && diffY == 0) {
@@ -123,7 +71,7 @@ implements DLinkModelListener
 		int midY = (model.m1.getLocY() + model.m2.getLocY()) / 2;
 		midY += 8;
 		midX += 10;
-		//midX += Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 60);
+		
 		if (diffX * diffY < 0) {
 			midY += Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 10);
 			midX += Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 10);
@@ -132,33 +80,23 @@ implements DLinkModelListener
 			midY -= Math.abs(((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX))) * 10);
 			midX += Math.abs((double)diffX / ((double)Math.abs(diffY) + (double)Math.abs(diffX)) * 10);
 		}
+		
+		/**
+		 * Draw the link
+		 */
+		
 		g2.setColor(color);
-		Stroke stroke = new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0,
-				new float[] { 3, 1 }, 0);
-		//g2.setStroke(stroke);
 		g2.setStroke(new BasicStroke(2));
 		g2.draw(new Line2D.Double(model.m1.getLocX(),  model.m1.getLocY(), model.m2.getLocX(), model.m2.getLocY()));
 		g2.setColor(Color.BLACK);
+		
+		/**
+		 * Draw the index of the link within the currently
+		 * shown path
+		 */
+		
 		g2.drawString(Integer.toString(index), midX, midY);
 	}
-	//=========================================================================//
-	public void paintComponent(Graphics g) {
-	}
-	//=========================================================================//
-	private void DetermineAction(int x, int y){
-		action = MOVE;	        
-	}
-	//=========================================================================//
-	private void DoAction(int dx, int dy){
-	}
-	//=========================================================================//
-	private void synchToModel(){
-		setBounds(model.getTop(), model.getLeft(), model.getWidth(), model.getHeight());
-	}
-	//=========================================================================//
-	private void selected(){    
-	}
-
 }
 
 

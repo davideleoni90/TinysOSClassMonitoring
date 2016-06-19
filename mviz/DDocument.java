@@ -39,12 +39,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.event.CellEditorListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.TableModelEvent;
@@ -56,17 +57,9 @@ import javax.swing.text.BadLocationException;
  * import classes to handle http requests
  */
 
-import org.apache.http.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.*;
-import org.apache.http.entity.*;
 import org.json.*;
-
-import com.sun.corba.se.impl.encoding.OSFCodeSetRegistry.Entry;
-import com.sun.org.apache.bcel.internal.generic.NEW;
-import com.sun.org.apache.xml.internal.dtm.ref.DTMDefaultBaseIterators.ParentIterator;
-
-import sun.applet.Main;
 
 /**
  * DDOCUMENT: ->This is the class which is actually invoked when executing the
@@ -87,7 +80,7 @@ extends JPanel
  * comprises only one method "actionPerformed" which is the basic event handler
  */
 
-implements ActionListener, TableModelListener {
+implements TableModelListener {
 
 	/**
 	 * the name of the Java classes, produced with "mig" tool, representing the
@@ -171,13 +164,13 @@ implements ActionListener, TableModelListener {
 	public DLinksViewer linksViewer;
 
 	/**
-	 * The table model for a table (motesTable) with 
-	 * one row for each mote involved in the collection
-	 * tree protocol, whose icon is shown in the canvas
+	 * The table model for a table (pathsTable) with 
+	 * one row for each path taken by messages from
+	 * one producer mote to the root of the network
 	 */
 
-	private PathsTableModel tableModel;
-	private JTable motesTable;
+	private PathsTableModel pathsTableModel;
+	private JTable pathsTable;
 
 	/**
 	 * SENSORS DATA TABLE ->components for the table with data from sensors
@@ -231,11 +224,11 @@ implements ActionListener, TableModelListener {
 		 */
 
 		this.parseGetURL=parseGetURL;
-		
+
 		/**
 		 * URL of the HTTP POST Parse request
 		 */
-		
+
 		this.parsePostURL=parsePostURL;
 
 		/**
@@ -320,7 +313,7 @@ implements ActionListener, TableModelListener {
 
 		/**
 		 * CANVAS START
-		 * ->reate the canvas where motes and links will be displayed
+		 * ->create the canvas where motes and links will be displayed
 		 */
 
 		canvas = new DPanel(this);
@@ -363,24 +356,24 @@ implements ActionListener, TableModelListener {
 		/**
 		 * ComponentListener is the interface an object has to implement in
 		 * order to receive events from a component; here we create an anonymous
-		 * inner class
+		 * inner class to catch the resize event
 		 */
 
-		/*canvas.addComponentListener(new ComponentListener() {
-		public void componentResized(ComponentEvent e) {
-			//linksViewer.redrawAllLayers();
-		}
+		canvas.addComponentListener(new ComponentListener() {
+			public void componentResized(ComponentEvent e) {
+				redrawCanvas();
+			}
 
-		public void componentHidden(ComponentEvent arg0) {
-		}
+			public void componentHidden(ComponentEvent arg0) {
+			}
 
-		public void componentMoved(ComponentEvent arg0) {
-		}
+			public void componentMoved(ComponentEvent arg0) {
+			}
 
-		public void componentShown(ComponentEvent arg0) {
+			public void componentShown(ComponentEvent arg0) {
 
-		}
-	});*/
+			}
+		});
 
 		/**
 		 * CANVAS END
@@ -397,7 +390,7 @@ implements ActionListener, TableModelListener {
 		 * Set the border for west area
 		 */
 
-		west.setBorder(BorderFactory.createLineBorder(Color.GRAY,3));
+		west.setBorder(BorderFactory.createLineBorder(Color.GRAY,4));
 
 		/**
 		 * Set the double buffer for the control area
@@ -513,11 +506,11 @@ implements ActionListener, TableModelListener {
 
 		measuresTableModel = new MeasuresTableModel();
 		measuresTable = new JTable(measuresTableModel);
-		
+
 		/**
 		 * This is necessary to have horizontal scrollbar
 		 */
-		
+
 		measuresTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
 		/**
@@ -578,34 +571,36 @@ implements ActionListener, TableModelListener {
 
 		/**
 		 * Create a new instance of the table model to represent
-		 * the set of motes in the WSN
+		 * the set of paths in the WSN
 		 */
 
-		tableModel = new PathsTableModel();
+		pathsTableModel = new PathsTableModel();
 
 		/**
 		 * Create a new table out of the preceding table model
 		 */
 
-		motesTable = new JTable(tableModel);
-		motesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-		motesTable.setFillsViewportHeight(true);
+		pathsTable = new JTable(pathsTableModel);
+		pathsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		pathsTable.setFillsViewportHeight(true);
 
 		/**
 		 * Set a custom renderer for the color cells in order to
-		 * draw the background color
+		 * draw the background color and format date in timestamp
+		 * column
 		 */
 
-		motesTable.getColumnModel().getColumn(2).setCellRenderer(new CustomCellRenderer());
-		tableModel.addTableModelListener(this);
+		pathsTable.getColumnModel().getColumn(2).setCellRenderer(new CustomCellDateRenderer());
+		pathsTable.getColumnModel().getColumn(3).setCellRenderer(new CustomCellColorRenderer());
+		pathsTableModel.addTableModelListener(this);
 		/**
 		 * Create a scrollable pane out of the table with motes
 		 */
 
-		JScrollPane motesScroller = new JScrollPane(motesTable);
+		JScrollPane motesScroller = new JScrollPane(pathsTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		motesScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		dimension=motesTable.getPreferredSize();
-		motesScroller.setPreferredSize(new Dimension(dimension.width,motesTable.getRowHeight()*10));
+		dimension=pathsTable.getPreferredSize();
+		motesScroller.setPreferredSize(new Dimension(dimension.width,pathsTable.getRowHeight()*10));
 
 		/**
 		 * Add motes table
@@ -617,31 +612,13 @@ implements ActionListener, TableModelListener {
 		/**
 		 * Enable events defined by the mask given as a parameter
 		 * to be delivered to DDocument. We defined this mask as
-		 * the max id reserved for ATWEvents+1 and max id reserved
-		 * for ATWEvents+2 for ValueSetEvent and LinkSetEvent
-		 * respectively.
+		 * the max id reserved for ATWEvents+1 for LinkSetEvent.
 		 * With this method calls, the two events below are delivered
 		 * to DDocument (method "processEvent" even though it is not
 		 * registered as a listener.
 		 */
 
 		enableEvents(LinkSetEvent.EVENT_ID);
-		enableEvents(ValueSetEvent.EVENT_ID);
-		enableEvents(NewMoteEvent.EVENT_ID);
-	}
-
-	public void actionPerformed(ActionEvent e) {
-	}
-
-	private void zMove(int direction) {
-		tableModel.updateTable();
-	}
-
-	public DShape getSelected() {
-		return null;
-	}
-
-	public void setSelected(DShape selected) {
 	}
 
 	Random rand = new Random();
@@ -649,12 +626,11 @@ implements ActionListener, TableModelListener {
 	private DMoteModel createNewMote(int moteID,boolean isProducer) {
 		DMoteModel m = new DMoteModel(moteID, rand, this,isProducer);
 		motes.put(new Integer(moteID), m);
-		//tableModel.add(m);
 		return m;
 	}
 
 	private void drawMote(int moteID,Graphics g){
-		DShape m = new DMote(((DMoteModel)motes.get(moteID)), this);
+		DMote m = new DMote(((DMoteModel)motes.get(moteID)), this);
 		m.paintShape(g);
 	}
 
@@ -682,72 +658,6 @@ implements ActionListener, TableModelListener {
 
 	}
 
-	/**
-	 * Create a new event indicating that the value of a field of messages
-	 * that has changed, then post the event in the queue of events of the
-	 * applet (from where they will be dispatched to proper handler causing
-	 * some components of the GUI to be modified)
-	 * @param moteID
-	 * @param name
-	 * @param value
-	 */
-
-	public void setMoteValue(int moteID, String name, int value) {
-
-		/**
-		 * Create a new event, specifying DDocument as the container
-		 * that will be notified of the event as it will be processed
-		 * by AWT framework
-		 */
-
-		ValueSetEvent vsv = new ValueSetEvent(this, moteID, name, value);
-
-		/**
-		 * Get the EventQueue associated to the current applet
-		 */
-
-		EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
-
-		/**
-		 * Post event to the queue
-		 */
-
-		eq.postEvent(vsv);
-	}
-
-	/**
-	 * Create a new event indicating that a new mote has been detected,
-	 * then post the event in the queue of events of the applet 
-	 * (from where they will be dispatched to proper handler causing
-	 * some components of the GUI to be modified) 
-	 * @param start
-	 * @param end
-	 * @return
-	 */
-
-	public void setNewMote(int moteID){
-
-		/**
-		 * Create a new event, specifying DDocument as the container
-		 * that will be notified of the event as it will be processed
-		 * by AWT framework
-		 */
-
-		NewMoteEvent nme=new NewMoteEvent(this, moteID);
-
-		/**
-		 * Get the EventQueue associated to the current applet
-		 */
-
-		EventQueue eq = Toolkit.getDefaultToolkit().getSystemEventQueue();
-
-		/**
-		 * Post event to the queue
-		 */
-
-		eq.postEvent(nme);
-	}
-
 	private DLinkModel createNewLink(DMoteModel start, DMoteModel end) {
 		DLinkModel linkModel = new DLinkModel(start, end,this);
 		links.put(start.getId()+"->"+end.getId(), linkModel);
@@ -772,13 +682,13 @@ implements ActionListener, TableModelListener {
 		 * Check if already in the table
 		 */
 
-		if(tableModel.containsPath(path)){
+		if(pathsTableModel.containsPath(path)){
 
 			/**
 			 * In this case we only have to update the path
 			 */
 
-			tableModel.updatePath(path);
+			pathsTableModel.updatePath(path);
 		}
 		else{
 
@@ -799,7 +709,7 @@ implements ActionListener, TableModelListener {
 			}
 			pathColors.add(backgroundColor);
 			currentPathColor=backgroundColor;
-			tableModel.add(path,currentPathColor);
+			pathsTableModel.add(path,currentPathColor);
 		}
 	}
 
@@ -1020,7 +930,7 @@ implements ActionListener, TableModelListener {
 		 * Get the color of the path to draw
 		 */
 
-		Color pathColor=(Color)(tableModel.getValueAt(tableModel.selected, 2));
+		Color pathColor=(Color)(pathsTableModel.getValueAt(pathsTableModel.selected, 3));
 
 		/**
 		 * Draw a link only if belonging to the current selected path
@@ -1029,15 +939,11 @@ implements ActionListener, TableModelListener {
 		Iterator linksIterator=links.entrySet().iterator();
 		while(linksIterator.hasNext()){
 			java.util.Map.Entry entry=(java.util.Map.Entry)linksIterator.next();
-			if(tableModel.belongsToPath((DLinkModel)(entry.getValue()))!=-1)
-				drawLink((DLinkModel)(entry.getValue()), g2d,pathColor,tableModel.belongsToPath((DLinkModel)(entry.getValue()))+1);
+			if(pathsTableModel.belongsToPath((DLinkModel)(entry.getValue()))!=-1)
+				drawLink((DLinkModel)(entry.getValue()), g2d,pathColor,pathsTableModel.belongsToPath((DLinkModel)(entry.getValue()))+1);
 		}
 
 		canvas.getGraphics().drawImage(offscreen, 0, 0, this);
-	}
-
-	public static void usage() {
-		System.out.println("usage: class-monitor [-comm source]");
 	}
 
 	/**
@@ -1137,7 +1043,7 @@ implements ActionListener, TableModelListener {
 			 */
 
 			String parseGetUrl=properties.getProperty("parseGetUrl");
-			
+
 			/**
 			 * Get the URL of the HTTP POST request to Parse repository
 			 */
@@ -1205,8 +1111,7 @@ implements ActionListener, TableModelListener {
 	 *
 	 */
 
-	private class PathsTableModel extends AbstractTableModel implements
-	DMoteModelListener {
+	private class PathsTableModel extends AbstractTableModel{
 
 		/**
 		 * Actual data of the the table model are represented by a matrix with a
@@ -1242,7 +1147,7 @@ implements ActionListener, TableModelListener {
 		}
 
 		public int getColumnCount() {
-			return 4;
+			return 5;
 		}
 
 		public int getRowCount() {
@@ -1272,8 +1177,10 @@ implements ActionListener, TableModelListener {
 			case 1:
 				return Integer.class;
 			case 2:
-				return Color.class;
+				return Long.class;
 			case 3:
+				return Color.class;
+			case 4:
 				return Boolean.class;
 			default:
 				return String.class;
@@ -1287,7 +1194,7 @@ implements ActionListener, TableModelListener {
 		@Override
 		public boolean isCellEditable(int row, int col) {
 			switch (col) {
-			case 3:
+			case 4:
 				return true;
 			default:
 				return false;
@@ -1304,14 +1211,14 @@ implements ActionListener, TableModelListener {
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex){
 
 			switch (columnIndex) {
-			case 3:
+			case 4:
 
 				/**
 				 * Set the "selected" field to the selected row
 				 */
 
 				selected=rowIndex;
-				data.get(rowIndex)[3]=Boolean.TRUE;
+				data.get(rowIndex)[4]=Boolean.TRUE;
 
 				/**
 				 * Reset all the other checkboxes
@@ -1319,7 +1226,7 @@ implements ActionListener, TableModelListener {
 
 				for(int i=0;i<getRowCount();i++){
 					if(i!=rowIndex)
-						data.get(i)[3]=Boolean.FALSE;
+						data.get(i)[4]=Boolean.FALSE;
 				}
 
 				/**
@@ -1417,6 +1324,7 @@ implements ActionListener, TableModelListener {
 					pathList.add(rootMote);
 					rowValue[0]=pathList;
 					rowValue[1]=path.length;
+					rowValue[2]=new Date();
 					fireTableRowsUpdated(rowIndex, rowIndex);
 					return;
 				}
@@ -1474,9 +1382,9 @@ implements ActionListener, TableModelListener {
 			 */
 
 			if(getRowCount()==0)
-				data.add(new Object[]{pathList,path.length,background,true});
+				data.add(new Object[]{pathList,path.length,new Date(),background,true});
 			else
-				data.add(new Object[]{pathList,path.length,background,false});
+				data.add(new Object[]{pathList,path.length,new Date(),background,false});
 			fireTableDataChanged();
 		}
 
@@ -1541,8 +1449,7 @@ implements ActionListener, TableModelListener {
 		 * Fixed headers of the columns
 		 */
 
-		String[] columnNames = new String[] { "X Acc", "Y Acc", "Z Acc",
-				"updatedAt","Origin" };
+		String[] columnNames = new String[] { "X Acc", "Y Acc", "Z Acc","Origin","updatedAt"};
 
 		/**
 		 * The number of last updated measures to retrieve from Parse on
@@ -1669,7 +1576,7 @@ implements ActionListener, TableModelListener {
 				/**
 				 * Read content as a string
 				 */
-				
+
 				String line = "";
 				String content = "";
 				while ((line = rd.readLine()) != null) {
@@ -1699,7 +1606,7 @@ implements ActionListener, TableModelListener {
 
 				for (int i = 0; i < results.length(); i++) {
 					JSONObject row = (JSONObject) results.get(i);
-					data.add(new Object[]{row.getInt("X"),row.getInt("Y"),row.getInt("Z"),row.getString("updatedAt"),row.getInt("Origin")});
+					data.add(new Object[]{row.getInt("X"),row.getInt("Y"),row.getInt("Z"),row.getInt("Origin"),row.getString("updatedAt")});
 				}
 			} catch (IOException ex) {
 				System.out.println(ex.getMessage());
@@ -1797,119 +1704,6 @@ implements ActionListener, TableModelListener {
 	}
 
 	/**
-	 * User defined AWT event: it's generated every time a new value
-	 * of a field in a received message is read
-	 * 
-	 * @author user
-	 * 
-	 */
-
-	protected class ValueSetEvent extends AWTEvent {
-
-		/**
-		 * as suggested by Java Official API, user defined AWT events should get
-		 * an ID which is higher than the "AWTEvent.RESERVED_ID_MAX"
-		 */
-
-		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
-
-		/**
-		 * Extend AWTEvent class with some fields that help to better
-		 * describe the generated event. These are:
-		 * - name of the field the value is referred to
-		 * - actual value of the field
-		 * - mote from which the message with the current value was
-		 *   received
-		 */
-
-		private String name;
-		private int value;
-		private int mote;
-
-		public ValueSetEvent(Object target, int mote, String name, int value) {
-
-			/**
-			 * Constructor of class AWTEvent takes two parameters:
-			 * - the object where the event originated
-			 * - ID of the event
-			 */
-
-			super(target, EVENT_ID);
-
-			/**
-			 * Set specific parameters of this event
-			 */
-
-			this.value = value;
-			this.name = name;
-			this.mote = mote;
-		}
-
-		public String name() {
-			return name;
-		}
-
-		public int value() {
-			return value;
-		}
-
-		public int moteId() {
-			return mote;
-		}
-	}
-
-	/**
-	 * User defined AWT event: it's generated every time a new mote
-	 * appears along the path of a message from leaf to root of the
-	 * tree network
-	 * 
-	 * @author user
-	 * 
-	 */
-
-	protected class NewMoteEvent extends AWTEvent {
-
-		/**
-		 * as suggested by Java Official API, user defined AWT events should get
-		 * an ID which is higher than the "AWTEvent.RESERVED_ID_MAX"
-		 */
-
-		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
-
-		/**
-		 * Extend AWTEvent class with some fields that help to better
-		 * describe the generated event. These are:
-		 * - name of the field the value is referred to
-		 * - actual value of the field
-		 * - mote from which the message with the current value was
-		 *   received
-		 */
-
-		private int moteID;
-
-		public NewMoteEvent(Object target, int moteID) {
-
-			/**
-			 * Constructor of class AWTEvent takes two parameters:
-			 * - the object where the event originated
-			 * - ID of the event
-			 */
-
-			super(target, EVENT_ID);
-
-			/**
-			 * Set specific parameters of this event
-			 */
-
-			this.moteID = moteID;
-		}
-
-		public int moteID() {
-			return moteID;
-		}
-	}
-
-	/**
 	 * User defined AWT event: there's a link between two motes
 	 * 
 	 * @author user
@@ -1952,79 +1746,14 @@ implements ActionListener, TableModelListener {
 	}
 
 	/**
-	 * User defined AWT event: it's generated every time a new message
-	 * coming from the network of motes is received by the host running
-	 * this applet
-	 * 
-	 * @author user
-	 * 
+	 * Custom cell render for Paths table: set foreground color for the
+	 * Color column
+	 *
 	 */
 
-	protected class NewMessageEvent extends AWTEvent {
+	public class CustomCellColorRenderer extends JLabel implements TableCellRenderer  {
 
-		/**
-		 * as suggested by Java Official API, user defined AWT events should get
-		 * an ID which is higher than the "AWTEvent.RESERVED_ID_MAX"
-		 */
-
-		public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
-
-		/**
-		 * Extend AWTEvent class with some fields that help to better
-		 * describe the generated event. These are:
-		 * - quality of the link
-		 * - sender of the message
-		 * - recipient of the message
-		 */
-
-		private int linkQuality;
-		private int startMote;
-		private int endMote;
-
-		public NewMessageEvent(Object target, int linkQuality, int startMote,int endMote) {
-
-			/**
-			 * Constructor of class AWTEvent takes two parameters:
-			 * - the object where the event originated
-			 * - ID of the event
-			 */
-
-			super(target, EVENT_ID);
-
-			/**
-			 * Set specific parameters of this event
-			 */
-
-			this.linkQuality = linkQuality;
-			this.startMote = startMote;
-			this.endMote = endMote;
-
-			CustomCellRenderer backgroundCellRenderer=new CustomCellRenderer();
-			motesTable.getColumnModel().getColumn(3).setCellRenderer(backgroundCellRenderer);
-
-
-		}
-
-		/**
-		 * Methods to retrieve parameters of the event
-		 */
-
-		public int linkQuality() {
-			return linkQuality;
-		}
-
-		public int startMote() {
-			return startMote;
-		}
-
-		public int endMote() {
-			return endMote;
-		}
-	}
-
-	public class CustomCellRenderer extends JLabel implements TableCellRenderer  {
-
-		public CustomCellRenderer() {
+		public CustomCellColorRenderer() {
 			setOpaque(true); //MUST do this for background to show up.
 		}
 
@@ -2038,8 +1767,30 @@ implements ActionListener, TableModelListener {
 			 * current background color
 			 */
 
-			setBackground((Color)(tableModel.getValueAt(row, column)));
+			setBackground((Color)(pathsTableModel.getValueAt(row, column)));
 			return this;
+		}
+	}
+
+	/**
+	 * Custom cell render for Paths table: set date format for the
+	 * Last Message column
+	 *
+	 */
+
+	public class CustomCellDateRenderer extends DefaultTableCellRenderer  {
+
+		DateFormat formatter = new SimpleDateFormat("HH:mm:ss.SSS yyyy-MM-dd");
+
+		public CustomCellDateRenderer() {
+			super();
+		}
+
+		public void setValue(Object value) {
+			if (formatter == null) {
+				formatter = DateFormat.getDateInstance();
+			}
+			setText((value == null) ? "" : formatter.format(value));
 		}
 	}
 
@@ -2049,7 +1800,7 @@ implements ActionListener, TableModelListener {
 
 	@Override
 	public void tableChanged(TableModelEvent arg0) {
-		if(arg0.getColumn()==3){
+		if(arg0.getColumn()==4){
 			redrawCanvas();
 		}
 

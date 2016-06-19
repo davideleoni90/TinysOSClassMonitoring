@@ -50,14 +50,6 @@ class DMoteModel extends Object implements Serializable {
 	public DDocument root;
 
 	/**
-	 * List of object implementing the DMoteModelListener interface:
-	 * they will be notified as something changes in the model of a
-	 * mote
-	 */
-
-	transient private ArrayList listeners;
-
-	/**
 	 * Coordinates on the canvas of the mote represented by this model
 	 */
 
@@ -155,12 +147,6 @@ class DMoteModel extends Object implements Serializable {
 			}
 		}
 
-		/**
-		 * No listeners registered yet
-		 */
-
-		listeners = null;
-
 		this.isProducer=isProducer;
 	}
 
@@ -172,14 +158,6 @@ class DMoteModel extends Object implements Serializable {
 
 	public int getId() {
 		return id;
-	}
-
-	public int getX() {
-		return (x);
-	}
-
-	public int getY() {
-		return (y);
 	}
 
 	public Image getImage() {
@@ -196,78 +174,5 @@ class DMoteModel extends Object implements Serializable {
 
 	public boolean isProducer() {
 		return isProducer;
-	}
-
-	/**
-	 * Add a DMoteModelListener to the set of listeners, namely those object
-	 * that will be notified of any change in the DMoteModel; add the listener
-	 * only if not already added. Listeners are:
-	 * 
-	 * 1 - DrawTableModel
-	 * 2 - DMote
-	 * 
-	 * @param listener
-	 */
-
-	public void addListener(DMoteModelListener listener) {
-		if (listeners == null)
-			listeners = new ArrayList();
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) {
-			if (it.next() == listener)
-				return;
-		}
-		listeners.add(listener);
-	}
-
-	/**
-	 * Remove a registered listener
-	 * 
-	 * @param listener
-	 */
-
-	public void removeListener(DMoteModelListener listener) {
-		if (listeners == null)
-			return;
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) {
-			if (it.next() == listener) {
-				it.remove();
-				return;
-			}
-		}
-	}
-
-	/**
-	 * Notify all the registered listeners about a change
-	 * of the value sent by a mote
-	 */
-
-	protected void fireChanges() {
-		if (listeners == null)
-			return;
-		Iterator it = listeners.iterator();
-		while (it.hasNext())
-			((DMoteModelListener) (it.next())).shapeChanged(this);
-	}
-
-	public void requestRepaint() {
-		fireChanges();
-	}
-
-	public void move(int x, int y) {
-		this.x = x;
-		this.y = y;
-		fireChanges();
-	}
-
-	public boolean equals(Object o) {
-		if (o instanceof DMoteModel) {
-			DMoteModel dm = (DMoteModel) o;
-			if (dm.getId() == getId()) {
-				return true;
-			}
-		}
-		return false;
 	}
 }
