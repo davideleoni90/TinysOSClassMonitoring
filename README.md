@@ -17,7 +17,7 @@
   <p> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
     <ol type="1">
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
-      <li> DATA VISUALIZATION AND STORAGE: a Java applet collects data from the network, gives a graphical representation of the topology
+      <li> DATA VISUALIZATION AND STORAGE: a Java application collects data from the network, gives a graphical representation of the topology
         of the network (as it evolves over time) and upload data to an online repository.</li>
     </ol>
     <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
@@ -35,11 +35,11 @@ this task. That's why it has been chosen also for the sensors network deployed i
 <a href="http://tinyos.stanford.edu/tinyos-wiki/index.php/TinyOS_Documentation_Wiki">here</a>).
 This solution comprises two TinyOs-based applications, on for each of the roles that a mote can play within the network:
 <ol type="1">
-  <li><i>producer</i></li>: if a mote is provided with an accelerometer, its task consists in acquiring values of acceleration from it, as
-  people move on their seats, and then communicating them to the other nodes of the network
-  <li><i>forwarder</i></li> if a mote is not provided with an accelerometer, it can only receive messages from producers and forward them to either
+  <li><i>producer</i>: if a mote is provided with an accelerometer, its task consists in acquiring values of acceleration from it, as
+    people move on their seats, and then communicating them to the other nodes of the network</li>
+  <li><i>forwarder</i> if a mote is not provided with an accelerometer, it can only receive messages from producers and forward them to either
     other motes or to the <i>root</i> of the network, namely the node which is connected to the host running the Java applet (that is in charge of
-    work on the data collected)
+    work on the data collected)</li>
 </ol>
 Producers and forwarders form a <i>tree-shaped</i> network based on the <i>Collection Tree Protocol (CTP)</i>: motes cooperate in order for the data
 to be delivered to the root mote with the shortest number of hops, i.e. minimizing the number of forwarders in the path from one producer to the root
@@ -57,11 +57,11 @@ the list of all the motes that have received the message itself. More precisely,
 the message; this has to be done to support "data visualization" (see below).
 Besides common features, there are differences between the two versions of the code executed by the motes:
 <ul>
-  <li><i>producers</i></li> are given the driver code for the accelerometer, thanks to which they sample values of acceleration with a periodicity which is read
-  from an external configuration file
-  <li>among <i>forwarders</i></li>, one claims to be the <i>root</i> of the network if its ID matches the ID defined for the root mote in the configuration file;
+  <li><i>producers</i> are given the driver code for the accelerometer, thanks to which they sample values of acceleration with a periodicity which is read
+  from an external configuration file</li>
+  <li>among <i>forwarders</i>, one claims to be the <i>root</i> of the network if its ID matches the ID defined for the root mote in the configuration file;
   this is also provided with the default TinyOs implementation of the serial communication stack, in order for it to communicate the data received from the network
-  to the host using its serial port
+  to the host using its serial port</li>
 </ul>
 </p>
 <h3>Hardware implementation</h3>
@@ -69,14 +69,42 @@ Besides common features, there are differences between the two versions of the c
   The accelerometer used in this project is the <a href="http://www.analog.com/en/products/mems/mems-accelerometers/adxl345.html#product-overview">ADXL-345 by AnalogDevices</a>, a 3-axis accelerometer with 13-bit resolution, up to +/-16g peaks of acceleration.
   Producers featuring this sensor are <a href="http://www.wsense.it/?p=158">MagoNode Platform</a>, while the root node and the forwarders used are <a href="https://www.google.it/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCEQFjAAahUKEwjEtLLIz4vIAhVI_nIKHcQuBMI&url=http%3A%2F%2Fwww.willow.co.uk%2FTelosB_Datasheet.pdf&usg=AFQjCNEdsZ8RCsxFTT5e4otj-0cxDVyjfA&sig2=aCFXqqXgc4FxPS4z-ZtR3w">Crossbow TelosB</a>
 </p>
-<h2>Data collection</h2>
-          <h3>Java GUI application</h3>
-          <p>
-            TinyOS comes with a Java application named "mviz" which provides a graphical tool to show the links in a network made of nodes running the Collection Tree Protocol:
-            the application communicates with the root node through a serial port,so when messages are received the representation of the topology of the network gets updated.
-            <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/graph.jpg" alt="graph">
-            <br>
-            Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
+<h2>Data visualization and storage</h2>
+<h3>Description</h3>
+<p>
+  Once the measures from the accelerometers have been successfully collected by the root of the sensors network, a Java application is in charge of presenting them to the user in such
+  a way that it's possible for him to carry on analytics and draw conclusion regarding learning. Also this application has to support the monitoring of the network itself, providing
+  information useful to detect, for example, if a certain accelerometer is no longer working.
+</p>
+<h3>Software implementation</h3>
+<p>
+  The release of TinyOs contains an application named "Mviz" which shows how it's possibile to implement the Collection Tree Protocol (CTP): when
+  it is installed on a number of motes, they organize themselves into a tree-shaped network and send values sampled from their light sensor  to the
+  root node. The release also features a Java SDK which can be used to build java applications that interact with TinyOs-based applications: one of
+  them, "mviz", is the java counterpart of "Mviz" and is specifically designed to give a graphical representation of the nodes and links composing
+  a sensors network that implements CTP.
+  In this project, data visualization and storage is delegated to a Java application, built on top of the Java SDK of TinyOs and inspired by the sample application "mviz".
+  They share the same main task: to parse raw sequences of bytes (messages) sent by the motes and to draw the topology of the sensors network in its current state deduced
+  from the set of messages received.
+  There still differences among "mviz" and the customized version included in this solution though:
+  <ol type="1">
+    <li> while mviz is "general-purpose", in the sense that it supports any structure for the the payload of messages sent by the motes, its customized
+       version is meant to work only with a specific TinyOs application (see above): this makes it way more easier for the customized version to parse
+       messages received from the network, since it's aware of their structure
+    </li>mviz is meant to interact with a network where all the motes feature a sensor, so that all of them is supposed to be the source of at least one
+    message sent through the network, but this is not the case of the scenario presented above for this project (see forwarders). This has an impact on
+    the tracking of alle the nodes, which is possible in the customized version thanks to the fact that all motes append their ID to the payload of every
+    message when they process it
+    <li>
+      Since one of the goals of this project is keeping tracks of data collected, not only showing them, this customized version of mviz uploads all <thead>
+        measures of acceleration to a online repository, from which they can also be retrieved after
+    </li>
+    <li>
+      Finally, this customized version of mviz is "path-aware", namely it is able to keep track, for each producer, which is the actual way to the root mote,
+      namely the list of forwarders thanks to which message is delivered to the root mote, as result of the Collection Tree Protocol
+    </li>
+    </ol>
+Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
             <ol type="1">
               <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a>
                 Only data extracted from packets whose origin is set to "1" are uploaded (data from the accelerometer)
