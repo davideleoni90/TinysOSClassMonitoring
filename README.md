@@ -84,26 +84,62 @@ Besides common features, there are differences between the two versions of the c
   them, "mviz", is the java counterpart of "Mviz" and is specifically designed to give a graphical representation of the nodes and links composing
   a sensors network that implements CTP.
   In this project, data visualization and storage is delegated to a Java application, built on top of the Java SDK of TinyOs and inspired by the sample application "mviz".
-  They share the same main task: to parse raw sequences of bytes (messages) sent by the motes and to draw the topology of the sensors network in its current state deduced
-  from the set of messages received.
+  They share the same main task: to parse raw sequences of bytes (messages) sent by the motes and to draw the topology of the sensors network in its current state,
+  deriving it from the set of messages received.
   There still differences among "mviz" and the customized version included in this solution though:
   <ol type="1">
     <li> while mviz is "general-purpose", in the sense that it supports any structure for the the payload of messages sent by the motes, its customized
        version is meant to work only with a specific TinyOs application (see above): this makes it way more easier for the customized version to parse
        messages received from the network, since it's aware of their structure
-    </li>mviz is meant to interact with a network where all the motes feature a sensor, so that all of them is supposed to be the source of at least one
-    message sent through the network, but this is not the case of the scenario presented above for this project (see forwarders). This has an impact on
-    the tracking of alle the nodes, which is possible in the customized version thanks to the fact that all motes append their ID to the payload of every
+    </li>
+    <li>mviz is meant to interact with a network where all the motes feature a sensor, so that all of them is supposed to be the source of at least one
+    message sent through the network, but this is not the case in the scenario presented above for this project (see forwarders). This makes it harder
+    to track forwarders (not only producers), but the proble is solved in the customized version thanks to the fact that all motes append their ID to the payload of every
     message when they process it
+  </li>
     <li>
       Since one of the goals of this project is keeping tracks of data collected, not only showing them, this customized version of mviz uploads all <thead>
         measures of acceleration to a online repository, from which they can also be retrieved after
     </li>
     <li>
-      Finally, this customized version of mviz is "path-aware", namely it is able to keep track, for each producer, which is the actual way to the root mote,
-      namely the list of forwarders thanks to which message is delivered to the root mote, as result of the Collection Tree Protocol
+      Finally, this customized version of mviz is "path-aware", namely it is able to keep track, for each producer, the list of forwarders thanks to which,
+      following the Collection Tree Protocol, a message is delivered to the root mote (and then to the host)
     </li>
     </ol>
+    This customized version of mviz relies on three pieces of information contained in the payload of every message received by the root mote:
+    <ol type="1">
+      <li><i>message_path</i>: an array of integer, where each element is the ID of a mote that handled the message, either as producer or as forwarder,
+        on its path towards the root node
+        <li><i>path_quality</i>: another array of integer, where each element is the quality of the link between two following motes along the path of
+        the message towards the root node</li>
+        <li><i>hopcount</i>: since the maximum size for the two above arrays has to be defined in advance (see header "Acceleration.h"), every time a mote
+          handles a message it increments this field, which act as a counter, so that then it's possible to understand the exact number of nodes alogn the
+        path</li>
+    </ol>
+    Combining these three fields, for each message it is possible to get the list of motes and links it passed through, together with the quality of all
+      links themselves: all this makes it possible to provide the following services.
+    <h3>Links Viewer</h3>
+    <p>
+    A table containing a description of all the links in the network: the ID of the two motes connected by the link and the quality of the link. The last
+    value corresponds to the probability that a message sent by one vertex of the link is received at the other vertex and it's computed as a function of
+    link quality estimated by both the involved motes. That's why, if a message is sent from nodes A to B and then from B to A, the table keeps a row for
+    the two links, but with the same value of "Quality" updated to the last message received that crossed that link.
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg" alt="Links Viewer">
+  </p>
+    <h3>Measures Table</h3>
+    <p>
+      Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="www.parse.com">Parse</a>, mostly because
+    it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table">
+  </p>
+  <h3>Paths Table and Graph</h3>
+  <p>
+  The main part of the whole application is the graphical representation of the sensors network, connected to the Paths Table. All the motes are drawn using an
+  icon (as regards with producers, this has also a red circle around it) and the links among them are drawn with different colors depending on the currenly
+  selected rows in the adjacent Paths Table. Here there's one row for each producer mote, with the indication of the number of forwarders that processed the
+  last message received from the producer itself (this value gets updated every time a new message from the same mote is received).</p>
+  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg" alt="Paths Table">
+  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg" alt="Canvas">
 Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
             <ol type="1">
               <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a>
