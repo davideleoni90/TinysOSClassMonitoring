@@ -5,10 +5,6 @@
     Pervasive Systems</a> course of the Master of Science of
     Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
 </p>
-<p align="center">
-  <br><br>
-  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg">
-</p>
 <h2>Motivations</h2>
 <p>The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
       "learning analytics": this consists in using data and analysis models to predict and advise people's learning.
@@ -24,10 +20,11 @@
       <li> DATA VISUALIZATION AND STORAGE: a Java application collects data from the network, gives a graphical representation of the topology
         of the network (as it evolves over time) and upload data to an online repository.</li>
     </ol>
+  </p>
+  <p align="center">
     <br><br>
-    <img align="center" src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
-    <br><br>
-    </p>
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg">
+  </p>
     <h2>Data collection</h2>
 <h3>Description</h3>
 <p>
@@ -130,20 +127,31 @@ Besides common features, there are differences between the two versions of the c
     value corresponds to the probability that a message sent by one vertex of the link is received at the other vertex and it's computed as a function of
     link quality estimated by both the involved motes. That's why, if a message is sent from nodes A to B and then from B to A, the table keeps a row for
     the two links, but with the same value of "Quality" updated to the last message received that crossed that link.
-    <br>
-    <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg" alt="Links Viewer"></div>
+  </p>
+  <p align="center">
+    <br><br>
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg">
   </p>
     <h3>Measures Table</h3>
     <p>
       Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="http://www.parse.com">Parse</a>,
       mostly because it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
       </p>
-    <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table"><div>
+      <p align="center">
+        <br><br>
+        <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg">
+      </p>
   <h3>Paths Table and Graph</h3>
   <p>
   The main part of the whole application is the graphical representation of the sensors network, connected to the Paths Table. All the motes are drawn using an
   icon (as regards with producers, this has also a red circle around it) and the links among them are drawn with different colors depending on the currenly
   selected rows in the adjacent Paths Table. Here there's one row for each producer mote, with the indication of the number of forwarders that processed the
   last message received from the producer itself (this value gets updated every time a new message from the same mote is received).</p>
-  <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg" alt="Paths Table"></div>
-  <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg" alt="Canvas"></div>
+  <p align="center">
+    <br><br>
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PahtsTable.jpeg">
+  </p>
+  <p align="center">
+    <br><br>
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg">
+  </p>
