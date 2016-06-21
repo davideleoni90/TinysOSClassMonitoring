@@ -21,7 +21,7 @@
         of the network (as it evolves over time) and upload data to an online repository.</li>
     </ol>  </p>
     <br>
-    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
+    <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture"></div>
 <h2>Data collection</h2>
 <h3>Description</h3>
 <p>
@@ -125,19 +125,19 @@ Besides common features, there are differences between the two versions of the c
     link quality estimated by both the involved motes. That's why, if a message is sent from nodes A to B and then from B to A, the table keeps a row for
     the two links, but with the same value of "Quality" updated to the last message received that crossed that link.
     <br>
-    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg" alt="Links Viewer">
+    <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg" alt="Links Viewer"></div>
   </p>
     <h3>Measures Table</h3>
     <p>
       Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="http://www.parse.com">Parse</a>, mostly because
     it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
       </p>
-    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table">
+    <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table"><div>
   <h3>Paths Table and Graph</h3>
   <p>
   The main part of the whole application is the graphical representation of the sensors network, connected to the Paths Table. All the motes are drawn using an
   icon (as regards with producers, this has also a red circle around it) and the links among them are drawn with different colors depending on the currenly
   selected rows in the adjacent Paths Table. Here there's one row for each producer mote, with the indication of the number of forwarders that processed the
   last message received from the producer itself (this value gets updated every time a new message from the same mote is received).</p>
-  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg" alt="Paths Table">
-  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg" alt="Canvas">
+  <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg" alt="Paths Table"></div>
+  <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg" alt="Canvas"></div>
