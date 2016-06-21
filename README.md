@@ -11,7 +11,7 @@
   <a href="#">Link 2</a> |
   <a href="#">Link 3</a>
   <br><br>
-  <img src="http://s.4cdn.org/image/title/105.gif">
+  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg">
 </p>
 <h2>Motivations</h2>
 <p>The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
