@@ -213,7 +213,8 @@ This solution features two files that can be used to customize the tool, both be
 the tool is executed or simply to test different it with different configurations:
 <ol type="1">
 <li><i>"Network.h"</i>: with this header it is possible to tune most of parameters of the sensors network, like the ID of the root mote, the frequency of sampling of the accelerometer,
-the depth of the messages queues of the motes...</li>
-<li><i>"config.properties"</i>: this configuration file contains path to the icons used to draw motes in the Java application or preferred size of its window</li>
+the depth of the messages queues of the motes etc.</li>
+<li><i>"config.properties"</i>: this configuration file contains path to the icons used to draw motes in the Java application, preferred size of its window etc.
+IMPORTANT!!! Also the keys to use the Parse API have to be specified: contact me to get them</li>
 </ol>
 </p>
