@@ -14,14 +14,14 @@
 	  the covered topics. More on "learning analytics" and futher motivations for this project can be found <a href="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Project%20Presentation.pdf">here</a>
   </p>
 <h2>Overview</h2>
-  <p align="center"> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
+  <p> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
     <ol type="1">
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
       <li> DATA VISUALIZATION AND STORAGE: a Java application collects data from the network, gives a graphical representation of the topology
         of the network (as it evolves over time) and upload data to an online repository.</li>
     </ol>
     <br><br>
-    <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture"></div>
+    <img align="center" src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
     <br><br>
     </p>
     <h2>Data collection</h2>
