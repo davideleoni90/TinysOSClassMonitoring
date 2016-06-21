@@ -168,3 +168,40 @@ would have index equal to 1, the link 2->3 would have index equal to 2, and so o
 <br><br>
 <img src="/Images/Canvas.jpeg">
 </p>
+<h2>Final notes</h2>
+<p align="justify">
+<ol>
+<li>the "Data Collection" module was developed and tested on TinyOs release 2.1.2</li>
+<li>the "Data visualization and storage" module depends on SDK of TinyOs release 2.1.2. As regards with the upload of data to Parse, an
+<a href="https://hc.apache.org/httpcomponents-client-4.5.x/index.html">HTTP client by Apache</a> (release 4.5) was used to make REST request;
+furthermore a <a href="https://mvnrepository.com/artifact/org.json/json">JSON library</a> was used to parse the response from Parse.</li>
+</ol>
+</p>
+<h3>Installation instructions</h3>
+<p align="justify">
+In order to successfully deploy the wireless sensors network, a release of TinyOs and tool capable of reading Makefiles are mandatory.
+Alsot the two libraries cited above (HTTP Client and JSON library) have to be include in the CLASSPATH environment variable.
+Here's the tasks to install the code into the motes:
+<ol>
+<li><i>producers</i>: if interested, please write to me to get the nesC code necessary to control the Magonode platforms (see "Hardware implementation" above).
+Once this code is available, it's necessary to browse to the folder "Producers", open a terminal window a execute the command</li>
+make magonode install
+<li><i>forwarders</i>: browse to the folder "Forwarders", open a terminal window a execute the command</li>
+make telosb install
+</ol>
+The "Makefile" contained for producers, not only compiles the nesC code to drive the motes, but also generates the java class that is going to be used
+by the Java application to parse messages received by motes (SensorsDataMsg): it calls the <a href="http://manpages.ubuntu.com/manpages/xenial/man1/mig.1.html">mig tool</a>
+to create the class. When the make file has completed its execution, the newly generated java class will be available directly inside the folder "mviz" of this project.
+Last step to perform consists in overwriting the content of the "mviz" folder inside the own TinyOs release with the content of the "mviz" folder which is part of this solution
+(checking that the file "SensorsDataMsg.java" is included). At this point the Java application can be run simply executing the script "tos-mviz" (part of the TinyOs release)
+from the folder containing the file "config.properties"
+<h3>Customization</h3>
+<p align="justify">
+This solution features two files that can be used to customize the tool, both because of specific user needs, for a different configuration of the enviroment where
+the tool is executed or simply to test different it with different configurations:
+<ol type="1">
+<li><i>"Network.h"</i>: with this header it is possible to tune most of parameters of the sensors network, like the ID of the root mote, the frequency of sampling of the accelerometer,
+the depth of the messages queues of the motes...</li>
+<li><i>"config.properties"</i>: this configuration file contains path to the icons used to draw motes in the Java application or preferred size of its window</li>
+</ol>
+</p>
