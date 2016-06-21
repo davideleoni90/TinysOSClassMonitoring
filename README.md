@@ -5,9 +5,13 @@
     Pervasive Systems</a> course of the Master of Science of
     Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
 </p>
-<p align"=center">
+<p align="center">
+  <b>Some Links:</b><br>
+  <a href="#">Link 1</a> |
+  <a href="#">Link 2</a> |
+  <a href="#">Link 3</a>
   <br><br>
-  <img src="/Images/architecture.jpeg" alt="Architecture">
+  <img src="http://s.4cdn.org/image/title/105.gif">
 </p>
 <h2>Motivations</h2>
 <p>The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
