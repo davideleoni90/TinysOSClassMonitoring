@@ -13,8 +13,8 @@
 	  Many researches have in fact proved the existence of a connection between the way people move while they attend a lecture and their interest about
 	  the covered topics. More on "learning analytics" and futher motivations for this project can be found <a href="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Project%20Presentation.pdf">here</a>
   </p>
+  ![Architecture](/Images/architecture.jpeg)
 <h2>Overview</h2>
-![Architecture](/Images/architecture.jpeg)
   <p> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
     <ol type="1">
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
