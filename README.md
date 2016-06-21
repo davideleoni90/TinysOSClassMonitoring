@@ -129,9 +129,9 @@ Besides common features, there are differences between the two versions of the c
     <h3>Measures Table</h3>
     <p>
       Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="www.parse.com">Parse</a>, mostly because
-    it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse
+    it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
+      </p>
     <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table">
-  </p>
   <h3>Paths Table and Graph</h3>
   <p>
   The main part of the whole application is the graphical representation of the sensors network, connected to the Paths Table. All the motes are drawn using an
@@ -140,30 +140,3 @@ Besides common features, there are differences between the two versions of the c
   last message received from the producer itself (this value gets updated every time a new message from the same mote is received).</p>
   <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg" alt="Paths Table">
   <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg" alt="Canvas">
-Thus the Java application included in this project represents an extension of "mviz" which provides it with two additional features:
-            <ol type="1">
-              <li>Data upload on a database created at <a href="www.parse.com">Parse.com</a>
-                Only data extracted from packets whose origin is set to "1" are uploaded (data from the accelerometer)
-              </li>
-              <br><br>
-              <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/parse.jpg" alt="parse upload">
-              <br><br>
-              <li>Data download of the last three uploaded value, from the database</li>
-              <br><br>
-              <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/download.jpg" alt="parse download">
-              <br><br>
-            </ol>
-            Both these features are implemented using the <a href="https://www.parse.com/docs/rest/guide">REST API</a> available at Parse.com. Since the request
-            and the response of this API contain a JSONObject, in order to run the "extended Mviz" it's necessary to import either this <a href="http://www.json.org/">JSON library</a>
-            and this <a href="http://hc.apache.org/httpclient-3.x/">HTTP Client</a>.
-          </p>
-          <h2>Files Description</h2>
-          <p>
-            The most important files available from this project are:
-            <ol>
-              <li>TinyOs applications for the motes, i.e. for the Magonode (Accelerometer) and for the TelosB (Node)</li>
-              <li>Header file (Acceleration.h) including the fields of the packets to be visualized by the Java GUI application </li>
-              <li>Extended version of Mviz</li>
-              <li>Make files to compile to magonode (avr folder and magonode.target); to be put in the make directory of the TinyOS installation</li>
-            </ol>
-          </p>
