@@ -23,7 +23,7 @@ of the network (as it evolves over time) and upload data to an online repository
 </p>
 <p align="center">
 <br><br>
-<img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg">
+<img src="/Images/architecture.jpeg">
 </p>
 <h2>Data collection</h2>
 <h3>Description</h3>
@@ -79,6 +79,10 @@ Once the measures from the accelerometers have been successfully collected by th
 a way that it's possible for him to carry on analytics and draw conclusion regarding learning. Also this application has to support the monitoring of the network itself, providing
 information useful to detect, for example, if a certain accelerometer is no longer working.
 </p>
+<p align="center">
+<br><br>
+<img src="/Images/Overview.jpeg">
+</p>
 <h3>Software implementation</h3>
 <p align="justify">
 The release of TinyOs contains an application named "Mviz" which shows how it's possibile to implement the Collection Tree Protocol (CTP): when
@@ -130,7 +134,7 @@ the two links, but with the same value of "Quality" updated to the last message 
 </p>
 <p align="center">
 <br><br>
-<img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg">
+<img src="/Images/LinksViewer.jpeg">
 </p>
 <h3>Measures Table</h3>
 <p align="justify">
@@ -138,13 +142,13 @@ Every time a message is received, values of acceleration, ID of the producer and
 mostly because it's free and APIs are really easy to use (they are simple REST calls). Here's a view of the dashboard from which the use can mangae the repository
 <p align="center">
 <br><br>
-<img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Parse.jpeg">
+<img src="/Images/Parse.jpeg">
 </p>
-It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
+It's possible to retrieve at any moment any number of the last measures uploaded on Parse; also it is possible to clean up the table.
 </p>
 <p align="center">
 <br><br>
-<img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg">
+<img src="/Images/MeasuresTable.jpeg">
 </p>
 <h3>Paths Table and Graph</h3>
 <p align="justify">
@@ -158,9 +162,9 @@ would have index equal to 1, the link 2->3 would have index equal to 2, and so o
 </p>
 <p align="center">
 <br><br>
-<img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg">
+<img src="/Images/PathsTable.jpeg">
 </p>
 <p align="center">
 <br><br>
-<img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/Canvas.jpeg">
+<img src="/Images/Canvas.jpeg">
 </p>
