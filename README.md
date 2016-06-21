@@ -19,10 +19,12 @@
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
       <li> DATA VISUALIZATION AND STORAGE: a Java application collects data from the network, gives a graphical representation of the topology
         of the network (as it evolves over time) and upload data to an online repository.</li>
-    </ol>  </p>
-    <br>
+    </ol>
+    <br><br>
     <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture"></div>
-<h2>Data collection</h2>
+    <br><br>
+    </p>
+    <h2>Data collection</h2>
 <h3>Description</h3>
 <p>
 The core of the solution is represented by motes, namely the nodes of the WSN. Each of them features some bacic hardware
@@ -129,8 +131,8 @@ Besides common features, there are differences between the two versions of the c
   </p>
     <h3>Measures Table</h3>
     <p>
-      Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="http://www.parse.com">Parse</a>, mostly because
-    it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
+      Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="http://www.parse.com">Parse</a>,
+      mostly because it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
       </p>
     <div style="text-align:center"><img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table"><div>
   <h3>Paths Table and Graph</h3>
