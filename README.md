@@ -1,12 +1,12 @@
 # TinysOSClassMonitoring
-<p>
+<p align="justify">
   This application is the result of a didactic project for the
   <a href="http://ichatz.me/index.php/Site/PervasiveSystems2015">
     Pervasive Systems</a> course of the Master of Science of
     Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
 </p>
 <h2>Motivations</h2>
-<p>The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
+<p align="justify">The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
       "learning analytics": this consists in using data and analysis models to predict and advise people's learning.
 	  In this case data are values of acceleration along three axes (x,y,z) collected by accelerometers installed under the chairs of a classroom:
 	  these values give information about the movements of people attending lectures and, as a consequence, on their level of attention to the lecturer.
@@ -14,7 +14,7 @@
 	  the covered topics. More on "learning analytics" and futher motivations for this project can be found <a href="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Project%20Presentation.pdf">here</a>
   </p>
 <h2>Overview</h2>
-  <p> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
+  <p align="justify"> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
     <ol type="1">
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
       <li> DATA VISUALIZATION AND STORAGE: a Java application collects data from the network, gives a graphical representation of the topology
@@ -27,7 +27,7 @@
   </p>
     <h2>Data collection</h2>
 <h3>Description</h3>
-<p>
+<p align="justify">
 The core of the solution is represented by motes, namely the nodes of the WSN. Each of them features some bacic hardware
 components (microcontroller, radio transceiver, memory, power source) and is controlled using TinyOs. This is an embedded
 operating system designed for sensor networks, which ensures that the custom code written by developers will be executed
@@ -50,7 +50,7 @@ node. The protocol uses a parameter called "ETX" (expected number fo transmissio
 the root node that minimizes the value of ETX.
 </p>
 <h3>Software implementation</h3>
-<p>The applications for both the types of motes use the same implementation of the Collection Tree Protocol (CTP) included in the release
+<p align="justify">The applications for both the types of motes use the same implementation of the Collection Tree Protocol (CTP) included in the release
 of TinyOs; they also make use of the same method (4bitLinkEstimation) to estimate the quality of the links with the neighbor nodes, that is how each
 mote chooses the recepient of its messages (containing values of acceleration) among its neighbor nodes. The default implementation under the hood stores
 messages in a queue before actually sending them and this solution includes a further queue, so we end up with a two-levels queue. This comes in handy when
@@ -68,19 +68,19 @@ Besides common features, there are differences between the two versions of the c
 </ul>
 </p>
 <h3>Hardware implementation</h3>
-<p>
+<p align="justify">
   The accelerometer used in this project is the <a href="http://www.analog.com/en/products/mems/mems-accelerometers/adxl345.html#product-overview">ADXL-345 by AnalogDevices</a>, a 3-axis accelerometer with 13-bit resolution, up to +/-16g peaks of acceleration.
   Producers featuring this sensor are <a href="http://www.wsense.it/?p=158">MagoNode Platform</a>, while the root node and the forwarders used are <a href="https://www.google.it/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCEQFjAAahUKEwjEtLLIz4vIAhVI_nIKHcQuBMI&url=http%3A%2F%2Fwww.willow.co.uk%2FTelosB_Datasheet.pdf&usg=AFQjCNEdsZ8RCsxFTT5e4otj-0cxDVyjfA&sig2=aCFXqqXgc4FxPS4z-ZtR3w">Crossbow TelosB</a>
 </p>
 <h2>Data visualization and storage</h2>
 <h3>Description</h3>
-<p>
+<p align="justify">
   Once the measures from the accelerometers have been successfully collected by the root of the sensors network, a Java application is in charge of presenting them to the user in such
   a way that it's possible for him to carry on analytics and draw conclusion regarding learning. Also this application has to support the monitoring of the network itself, providing
   information useful to detect, for example, if a certain accelerometer is no longer working.
 </p>
 <h3>Software implementation</h3>
-<p>
+<p align="justify">
   The release of TinyOs contains an application named "Mviz" which shows how it's possibile to implement the Collection Tree Protocol (CTP): when
   it is installed on a number of motes, they organize themselves into a tree-shaped network and send values sampled from their light sensor  to the
   root node. The release also features a Java SDK which can be used to build java applications that interact with TinyOs-based applications: one of
@@ -133,7 +133,7 @@ Besides common features, there are differences between the two versions of the c
     <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg">
   </p>
     <h3>Measures Table</h3>
-    <p>
+    <p align="justify">
       Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="http://www.parse.com">Parse</a>,
       mostly because it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
       </p>
@@ -142,14 +142,14 @@ Besides common features, there are differences between the two versions of the c
         <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg">
       </p>
   <h3>Paths Table and Graph</h3>
-  <p>
+  <p align="justify">
   The main part of the whole application is the graphical representation of the sensors network, connected to the Paths Table. All the motes are drawn using an
   icon (as regards with producers, this has also a red circle around it) and the links among them are drawn with different colors depending on the currenly
   selected rows in the adjacent Paths Table. Here there's one row for each producer mote, with the indication of the number of forwarders that processed the
   last message received from the producer itself (this value gets updated every time a new message from the same mote is received).</p>
   <p align="center">
     <br><br>
-    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PahtsTable.jpeg">
+    <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/PathsTable.jpeg">
   </p>
   <p align="center">
     <br><br>
