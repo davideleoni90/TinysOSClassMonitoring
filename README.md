@@ -14,7 +14,7 @@
 	  the covered topics. More on "learning analytics" and futher motivations for this project can be found <a href="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Project%20Presentation.pdf">here</a>
   </p>
 <h2>Overview</h2>
-p=. !/Images/architecture.jpeg!
+![Architecture](/Images/architecture.jpeg)
   <p> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
     <ol type="1">
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
