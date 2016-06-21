@@ -19,9 +19,9 @@
       <li> DATA COLLECTION: a wireless sensors network (WSN) continuously acquires data about movements of the people attending lectures</li>
       <li> DATA VISUALIZATION AND STORAGE: a Java application collects data from the network, gives a graphical representation of the topology
         of the network (as it evolves over time) and upload data to an online repository.</li>
-    </ol>
+    </ol>  </p>
+    <br>
     <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
-  </p>
 <h2>Data collection</h2>
 <h3>Description</h3>
 <p>
@@ -124,11 +124,12 @@ Besides common features, there are differences between the two versions of the c
     value corresponds to the probability that a message sent by one vertex of the link is received at the other vertex and it's computed as a function of
     link quality estimated by both the involved motes. That's why, if a message is sent from nodes A to B and then from B to A, the table keeps a row for
     the two links, but with the same value of "Quality" updated to the last message received that crossed that link.
+    <br>
     <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/LinksViewer.jpeg" alt="Links Viewer">
   </p>
     <h3>Measures Table</h3>
     <p>
-      Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="www.parse.com">Parse</a>, mostly because
+      Every time a message is received, values of acceleration, ID of the producer and timestemp are uploaded to a online repository: the chosen one is <a href="http://www.parse.com">Parse</a>, mostly because
     it's free and APIs are really easy to use (they are simple REST calls). It's possible to retrieve at any moment any number of the last measures uploaded on Parse.
       </p>
     <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/MeasuresTable.jpeg" alt="Measures Table">
