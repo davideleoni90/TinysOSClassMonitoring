@@ -6,6 +6,7 @@
     Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
 </p>
 <p align"=center">
+  <br><br>
   <img src="/Images/architecture.jpeg" alt="Architecture">
 </p>
 <h2>Motivations</h2>
