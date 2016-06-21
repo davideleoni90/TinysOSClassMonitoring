@@ -5,6 +5,9 @@
     Pervasive Systems</a> course of the Master of Science of
     Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
 </p>
+<p align"=center">
+  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
+</p>
 <h2>Motivations</h2>
 <p>The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
       "learning analytics": this consists in using data and analysis models to predict and advise people's learning.
@@ -13,7 +16,6 @@
 	  Many researches have in fact proved the existence of a connection between the way people move while they attend a lecture and their interest about
 	  the covered topics. More on "learning analytics" and futher motivations for this project can be found <a href="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Project%20Presentation.pdf">here</a>
   </p>
-  ![Architecture](/Images/architecture.jpeg)
 <h2>Overview</h2>
   <p> Thanks to this tool it is possible to monitor a class and this is achieved in two steps:
     <ol type="1">
