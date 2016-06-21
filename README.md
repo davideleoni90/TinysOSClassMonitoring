@@ -6,7 +6,7 @@
     Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
 </p>
 <p align"=center">
-  <img src="https://github.com/davideleoni90/TinysOSClassMonitoring/blob/master/Images/architecture.jpeg" alt="Architecture">
+  <img src="/Images/architecture.jpeg" alt="Architecture">
 </p>
 <h2>Motivations</h2>
 <p>The goal of this project is to provide a tool for collecting information to be used as starting point within the context of
