@@ -3,7 +3,8 @@
 This application is the result of a didactic project for the
 <a href="http://ichatz.me/index.php/Site/PervasiveSystems2015">
 Pervasive Systems</a> course of the Master of Science of
-Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>
+Engineering in Computer Science at <a href="http://cclii.dis.uniroma1.it/?q=it/msecs">Sapienza University of Rome</a>.
+<br>
 The author of this project is <a href="https://www.linkedin.com/in/leonidavide">Davide Leoni</a>
 </p>
 <h2>Motivations</h2>
