@@ -23,8 +23,8 @@ of the network (as it evolves over time) and upload data to an online repository
 </ol>
 <br>
 Here's the final architecture of this project: the dashed red line denotes the DATA COLLECTION module, while the dashed blue line denotes the
-</p>
 DATA VISUALIZATION AND STORAGE module.
+</p>
 <p align="center">
 <br><br>
 <img src="/Images/architecture.jpeg">
